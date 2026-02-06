@@ -34,6 +34,7 @@ static int is_same(const char *a, const char *b) //iki string birebir aynı mı?
 int main(int ac, char **av, char **envp)
 {
     char *line;
+    t_token *t;
 
     (void)ac;
     (void)av;
@@ -62,7 +63,12 @@ int main(int ac, char **av, char **envp)
             break;
         }
 
-        printf("Girdi: %s\n", line);
+        t = tokenizer(line);
+        while(t)
+        {
+            printf(" %d %s: \n", t->type, t->value);
+            t = t->next;
+        }
         free(line);
     }
 
@@ -70,11 +76,3 @@ int main(int ac, char **av, char **envp)
 
 }
 
-
-//TOKENIZER
-
-// -BOŞLUK GÖRÜRSEN GEÇ
-// - | GÖRÜRSEN -> PIPE
-// - < GÖRÜRSEN SONRAKİ < İSE HEREDOC DEĞİLSE REDIR
-// - > GÖRÜRSEN SONRAKİ > İSE APPEND DEĞİLSE REDIR OUT
-// - BUNLARIN HİÇBİRİNE UYMUYORSA WORD(DOSYA BİLE OLSA WORD KABUL EDERİZ)

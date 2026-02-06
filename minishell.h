@@ -61,5 +61,6 @@ typedef struct s_shell //shell state. komutlar arası kaybolmaması gereken bilg
 	int			last_exit_status;
 }t_shell;
 
+t_token *tokenizer(char *s);
 
 #endif

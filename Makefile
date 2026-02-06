@@ -3,11 +3,10 @@ NAME = minishell
 CC = cc
 CFLAGS = -Wall -Wextra -Werror -g
 
-SRCS = main.c
+SRCS = main.c tokenizer.c
 LIBFT = ./libft/libft.a
 OBJS = $(SRCS:.c=.o)
 
-# --- Readline (macOS brew uyumlu) ---
 READLINE_DIR := $(shell brew --prefix readline 2>/dev/null)
 ifeq ($(READLINE_DIR),)
 	RL_INC =
