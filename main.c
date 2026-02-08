@@ -19,7 +19,7 @@ static int is_only_spaces(const char *s) //girilen satır boş mu veya sadece sp
 
     return 1;
 }
-
+/*
 static int is_same(const char *a, const char *b) //iki string birebir aynı mı?
 {
     int i = 0;
@@ -29,6 +29,21 @@ static int is_same(const char *a, const char *b) //iki string birebir aynı mı?
     while (a[i] && b[i] && a[i] == b[i])
         i++;
     return (a[i] == '\0' && b[i] == '\0');
+}
+*/
+char *read_lines()
+{
+	char	*line;
+
+	line = readline("minishell$ ");
+	if (!line)
+	{
+		write(1, "exit\n", 5);
+		exit(0);
+	}
+	if (*line)
+		add_history(line);
+	return (line);
 }
 
 int main(int ac, char **av, char **envp)
@@ -42,27 +57,12 @@ int main(int ac, char **av, char **envp)
 
     while(1)
     {
-        line = readline("minishell$ "); // =ls. readline bellek kullanır o yüzden free edilmeli
-        if(line == NULL)
-        {
-            printf("exit\n");
-            break;
-        }
-
+        line = read_lines(); // =ls. readline bellek kullanır o yüzden free edilmeli
         if(is_only_spaces(line))
         {
             free(line);
             continue;
         }
-
-        add_history(line);
-
-        if(is_same(line, "exit"))
-        {
-            free(line); //eğer direkt exit yapıldıysa break ile çıkış yaparı
-            break;
-        }
-
         t = tokenizer(line);
         while(t)
         {
@@ -71,8 +71,6 @@ int main(int ac, char **av, char **envp)
         }
         free(line);
     }
-
     return (0);
-
 }
 
