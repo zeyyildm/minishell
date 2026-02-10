@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: zeyildir <zeyildir@student.42.fr>          +#+  +:+       +#+        */
+/*   By: hakalkan <hakalkan@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/19 04:15:59 by hakalkan          #+#    #+#             */
-/*   Updated: 2026/02/04 17:56:08 by zeyildir         ###   ########.fr       */
+/*   Updated: 2026/02/10 18:54:43 by hakalkan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,6 +50,7 @@ typedef struct s_command //parserın  ana çıktısı (çalıştırılacak olan 
 {
 	char	**argv; //execveye gidecek olan
 	t_redir			*redirs; //input output ayarları
+	int 			i;
 	struct s_command	*next;	 //pipeline için
 }t_command;
 
@@ -62,5 +63,7 @@ typedef struct s_shell //shell state. komutlar arası kaybolmaması gereken bilg
 }t_shell;
 
 t_token *tokenizer(char *s);
+t_command *parser(t_token *t, t_command *cmd);
+
 
 #endif

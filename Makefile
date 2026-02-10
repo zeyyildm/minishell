@@ -3,7 +3,7 @@ NAME = minishell
 CC = cc
 CFLAGS = -Wall -Wextra -Werror -g
 
-SRCS = main.c tokenizer.c
+SRCS = main.c tokenizer.c parser.c
 LIBFT = ./libft/libft.a
 OBJS = $(SRCS:.c=.o)
 

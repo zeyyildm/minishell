@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   main.c                                             :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: hakalkan <hakalkan@student.42istanbul.c    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/02/10 16:31:21 by hakalkan          #+#    #+#             */
+/*   Updated: 2026/02/10 20:14:13 by hakalkan         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "minishell.h"
 #include <readline/readline.h>
 #include <readline/history.h>
@@ -50,6 +62,7 @@ int main(int ac, char **av, char **envp)
 {
     char *line;
     t_token *t;
+    t_command cmd;
 
     (void)ac;
     (void)av;
@@ -64,10 +77,24 @@ int main(int ac, char **av, char **envp)
             continue;
         }
         t = tokenizer(line);
-        while(t)
+        // while(t)
+        // {
+        //     printf(" %d %s: \n", t->type, t->value);
+        //     t = t->next;
+        // }
+        t_command *cmd1 = parser(t,&cmd);
+         int i;
+        i= 0;
+        while(cmd1)
         {
-            printf(" %d %s: \n", t->type, t->value);
-            t = t->next;
+            while (cmd1->argv[i])
+            {
+                printf(" %s: \n", cmd1->argv[i]);
+                i++;
+                /* code */
+            }
+            
+            cmd1 = cmd1->next;
         }
         free(line);
     }
