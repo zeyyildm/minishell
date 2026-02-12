@@ -6,7 +6,7 @@
 /*   By: hakalkan <hakalkan@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/10 16:31:21 by hakalkan          #+#    #+#             */
-/*   Updated: 2026/02/10 20:14:13 by hakalkan         ###   ########.fr       */
+/*   Updated: 2026/02/12 17:43:33 by hakalkan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,7 +62,10 @@ int main(int ac, char **av, char **envp)
 {
     char *line;
     t_token *t;
-    t_command cmd;
+    t_command *cmd;
+    t_command *cmdHead;
+    cmd = NULL;
+    cmdHead = NULL;
 
     (void)ac;
     (void)av;
@@ -82,19 +85,19 @@ int main(int ac, char **av, char **envp)
         //     printf(" %d %s: \n", t->type, t->value);
         //     t = t->next;
         // }
-        t_command *cmd1 = parser(t,&cmd);
-         int i;
-        i= 0;
-        while(cmd1)
+        cmdHead = parser(t,cmd);
+        int i;
+        while(cmdHead)
         {
-            while (cmd1->argv[i])
+            i= 0;
+            while (cmdHead && cmdHead->argv[i])
             {
-                printf(" %s: \n", cmd1->argv[i]);
+                printf(" %s: \n", cmdHead->argv[i]);
                 i++;
                 /* code */
             }
-            
-            cmd1 = cmd1->next;
+            printf("diger komut: \n");
+            cmdHead = cmdHead->next;
         }
         free(line);
     }
