@@ -6,7 +6,7 @@
 /*   By: hakalkan <hakalkan@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/10 16:31:14 by hakalkan          #+#    #+#             */
-/*   Updated: 2026/02/10 23:42:25 by hakalkan         ###   ########.fr       */
+/*   Updated: 2026/02/14 21:39:31 by hakalkan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,6 +67,19 @@ static void parse_redir(t_token **head, char *s, int *i)
         token_add_back(head, new_token(T_REDIR_IN, NULL)); 
     }
 }
+int quote_size(char *str,char c)
+{
+    int i;
+    
+    i = 1;
+    while (str[i])
+    {
+        if(str[i] == c)
+            break;
+        i++;
+    }
+    return i;
+}
 
 
 t_token *tokenizer(char *s)
@@ -75,6 +88,7 @@ t_token *tokenizer(char *s)
     int i;
 
     i = 0;
+
     while(s[i])
     {
         skip_spaces(s, &i);
@@ -87,8 +101,14 @@ t_token *tokenizer(char *s)
         else
         {
             int start = i;
-            while (s[i] && s[i] != ' ' && s[i] != '\t' && s[i] != '|' && s[i] != '<' && s[i] != '>')
-                i++;
+            if(s[start] == '"' || s[start] == '\'')
+            {
+                i += quote_size(s + start,s[start]);
+            }
+            else
+                while (s[i] && s[i] != ' ' && s[i] != '\t' && s[i] != '|' && s[i] != '<' && s[i] != '>')
+                    if(s[start] != '"' || s[start] != '\'')
+                        i++;
             token_add_back(&head, new_token(TWORD, ft_substr(s, start, i - start)));
         }
         i++;

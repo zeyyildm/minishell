@@ -6,7 +6,7 @@
 /*   By: hakalkan <hakalkan@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/19 04:15:59 by hakalkan          #+#    #+#             */
-/*   Updated: 2026/02/10 18:54:43 by hakalkan         ###   ########.fr       */
+/*   Updated: 2026/02/14 20:01:19 by hakalkan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,6 +64,10 @@ typedef struct s_shell //shell state. komutlar arası kaybolmaması gereken bilg
 
 t_token *tokenizer(char *s);
 t_command *parser(t_token *t, t_command *cmd);
+void	print_commands(t_command *cmd);
+void	print_tokens(t_token *head);
+
+
 
 
 #endif
