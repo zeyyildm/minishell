@@ -6,7 +6,7 @@
 /*   By: hakalkan <hakalkan@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/10 16:31:14 by hakalkan          #+#    #+#             */
-/*   Updated: 2026/02/14 21:39:31 by hakalkan         ###   ########.fr       */
+/*   Updated: 2026/02/16 13:02:28 by hakalkan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,16 +101,31 @@ t_token *tokenizer(char *s)
         else
         {
             int start = i;
-            if(s[start] == '"' || s[start] == '\'')
+            int in_quote = 0;
+            char quote_char = 0;
+
+            while (s[i] &&
+                (in_quote ||
+                (s[i] != ' ' && s[i] != '\t' &&
+                s[i] != '|' && s[i] != '<' && s[i] != '>')))
             {
-                i += quote_size(s + start,s[start]);
+                if (!in_quote && (s[i] == '"' || s[i] == '\''))
+                {
+                    in_quote = 1;
+                    quote_char = s[i];
+                }
+                else if (in_quote && s[i] == quote_char)
+                {
+                    in_quote = 0;
+                }
+                i++;
             }
-            else
-                while (s[i] && s[i] != ' ' && s[i] != '\t' && s[i] != '|' && s[i] != '<' && s[i] != '>')
-                    if(s[start] != '"' || s[start] != '\'')
-                        i++;
-            token_add_back(&head, new_token(TWORD, ft_substr(s, start, i - start)));
+
+            token_add_back(&head,
+                new_token(TWORD, ft_substr(s, start, i - start)));
+            i--;
         }
+
         i++;
     }
     return head;

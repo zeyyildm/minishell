@@ -6,7 +6,7 @@
 /*   By: hakalkan <hakalkan@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/10 16:32:06 by hakalkan          #+#    #+#             */
-/*   Updated: 2026/02/14 21:51:58 by hakalkan         ###   ########.fr       */
+/*   Updated: 2026/02/16 13:41:28 by hakalkan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -110,7 +110,7 @@ t_command *parser(t_token *t, t_command *cmd)
             else
                 return NULL;
         }
-        t = t->next;    
+        t = t->next;
     }
     if(t && t->type == TPIPE)
     {
