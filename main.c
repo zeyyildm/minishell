@@ -88,7 +88,6 @@ int line_flag(char *str , char c)
     }
     return 0;
 }
-
 int line_check_quote(char *str)
 {
     int i;
@@ -133,6 +132,8 @@ int main(int ac, char **av, char **envp)
             continue;
         }
         t = tokenizer(line);
+        if(t->type == TPIPE)
+            exit(1); 
         cmdHead = parser(t,cmd);
         // int i;
         // while(cmdHead)
@@ -154,3 +155,8 @@ int main(int ac, char **av, char **envp)
     return (0);
 }
 
+
+// | tan önce lkesinlikle kellime olmalı 
+// ara katmanda heredoc bakacaz 
+// tokenizeerrda çoklu redirler çalılşıyor 
+//
