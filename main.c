@@ -107,14 +107,22 @@ int line_check_quote(char *str)
         return 1; // hata var
     return 0;
 }
+void init_env(t_shell *shell)
+{
+    shell->env = NULL;
+    get_env(shell);
+}
 
 int main(int ac, char **av, char **envp)
 {
     char *line;
-    t_token *t;
-    t_command *cmd;
+    t_shell shell;
+    shell.envp = envp;
+    shell.env = NULL;
+    init_env(&shell);
+    shell.tokens = NULL;
+    shell.commands = NULL;
     t_command *cmdHead;
-    cmd = NULL;
     cmdHead = NULL;
 
     (void)ac;
@@ -131,10 +139,10 @@ int main(int ac, char **av, char **envp)
             free(line);
             continue;
         }
-        t = tokenizer(line);
-        if(t->type == TPIPE)
+        shell.tokens = tokenizer(line);
+        if(shell.tokens->type == TPIPE)
             exit(1); 
-        cmdHead = parser(t,cmd);
+        cmdHead = parser(shell.tokens,shell.commands);
         // int i;
         // while(cmdHead)
         // {
@@ -147,8 +155,10 @@ int main(int ac, char **av, char **envp)
         //     printf("diger komut: \n");
         //     cmdHead = cmdHead->next;
         // }
-        print_tokens(t);
+        print_tokens(shell.tokens);
         print_commands(cmdHead);
+        print_env_debug(shell.env);
+
 
         free(line);
     }

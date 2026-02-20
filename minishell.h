@@ -46,6 +46,13 @@ typedef struct s_redir //parserın redirectionlarını için
 	struct s_redir	*next;
 }	t_redir;
 
+typedef struct s_env //envp için
+{
+	char	*key;
+	char	*value;
+	struct s_env	*next;
+}	t_env;
+
 typedef struct s_command //parserın  ana çıktısı (çalıştırılacak olan komut)
 {
 	char	**argv; //execveye gidecek olan
@@ -58,6 +65,7 @@ typedef struct s_shell //shell state. komutlar arası kaybolmaması gereken bilg
 {
 	t_token		*tokens;
 	t_command	*commands;
+	t_env		*env;
 	char 		**envp;
 	int			last_exit_status;
 }t_shell;
@@ -66,6 +74,9 @@ t_token *tokenizer(char *s);
 t_command *parser(t_token *t, t_command *cmd);
 void	print_commands(t_command *cmd);
 void	print_tokens(t_token *head);
+void	print_env_debug(t_env *env);
+void get_env(t_shell *shell);
+
 
 
 

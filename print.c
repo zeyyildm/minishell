@@ -78,3 +78,13 @@ void	print_commands(t_command *cmd)
 		cmd = cmd->next;
 	}
 }
+void	print_env_debug(t_env *env)
+{
+	while (env)
+	{
+		printf("KEY   : [%s]\n", env->key);
+		printf("VALUE : [%s]\n", env->value ? env->value : "NULL");
+		printf("--------\n");
+		env = env->next;
+	}
+}
