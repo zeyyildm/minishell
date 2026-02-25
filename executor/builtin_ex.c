@@ -47,35 +47,56 @@ static char *get_env_values(t_env *env, char *key)
             return env->value;
         env = env->next;
     }
+
+    return (NULL);
+}
+static void update_env(t_env *env, char *key, char *new_value)
+{
+    while(env)
+    {
+        if(ft_strcmp(env->key, key) == 0)
+        {
+            free(env->value);
+            env->value = ft_strdup(new_value);
+            return;
+        }
+        env = env->next;
+    }
 }
 
 int built_cd(t_shell *shell,t_command *cmd)
 {
     char *path_target;
     if(!cmd->argv[1]) //arguman yoksa home'a gitmek zorunda
-       target = get_env_values(shell->env, "HOME");
+       path_target = get_env_values(shell->env, "HOME");
     else
-        target = cmd->argv[1]; //arguman varsa yazilan pathe gider
-    if(!target)
+        path_target = cmd->argv[1]; //arguman varsa yazilan pathe gider
+    if(!path_target)
     {
         perror("cd home bulma hatasiii");
         return (1);
     }
-    if(chdir(target) == -1)
+    if(chdir(path_target) == -1) //change directory basarisiz olursa -1 döner
     {
         perror("cd target bulma hatasiii");
         return (1);
     }
     //simdi sourun yoksa dizini degistirecegiz
     //once eski pwd degiskenini sonra yenisini ogrenmemiz lazim
-    char *old_pwd = get_env_values(shell->env, "PWD");
-    char *new_pwd = getcwd(NULL, 0);
+    char *old_pwd = get_env_values(shell->env, "PWD"); //env listesinde pwd olarak kayıtlı mevcut dizin
+    char *new_pwd = getcwd(NULL, 0); //chdr yaptıktan sonra shellin şu anki dizisi
     if(!old_pwd || !new_pwd)
     {
         perror("cd  hatasiii");
         return (1);
     }
     //simdi node'larda path değiştirme yapacagiz
+    update_env(shell->env, "OLDPWD", old_pwd);
+    //eskiyi guncelledik
+    update_env(shell->env, "PWD", new_pwd);
+
+    free(new_pwd); //old_pwd free etmedik cünkü env lsitesinde zaten kullaniliyor
+    return (0);
     
 }
 
@@ -93,14 +114,15 @@ int built_pwd(t_command *cmd)
     return (0);
 }
 
-int built_export(t_command *cmd)
+int built_export(t_command *cmd) //env listesine ekler veya gunceller boylece child processler gorebilir
 {
-
+    //varsa degistir (update_env kullanicaz)
+    //yoksa ekle(add_env_list gibi bi fonks)
 }
 
-int built_unset(t_command *cmd)
+int built_unset(t_command *cmd) //değişkeni shell env lişstesinden kaldırır artik child goremez
 {
-
+ //unset sadece shell ortamini degistirir kalici degisiklik yapamaz
 }
 
 int built_env(t_shell *shell) //bu fonks env listesindeki KEY=VALUE ikililerini bastırmalı
