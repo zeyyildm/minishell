@@ -48,7 +48,7 @@ int cmd_size(t_token *t)
 
     i = 0;
     tmp = t;
-    while (tmp && tmp->next && tmp->type != TPIPE)
+    while (tmp && tmp->type != TPIPE)
     {
         if (tmp->type == T_REDIR_IN || tmp->type == T_REDIR_OUT ||tmp->type == T_REDIR_APPEND || tmp->type == T_HEREDOC)
             tmp = tmp->next;
@@ -66,16 +66,16 @@ int word_save(t_command *cmd , t_token *t)
 
     count = 0;
     tmp = t;    
-    while (tmp && tmp->type != TPIPE)
+    while (tmp && tmp->type != TPIPE) //pipe gelene kadar tüm tokenları gez
     {
         if (tmp->next && (tmp->type == T_REDIR_IN || tmp->type == T_REDIR_OUT ||tmp->type == T_REDIR_APPEND || tmp->type == T_HEREDOC))
         {
-            tmp = tmp->next;
+            tmp = tmp->next; //redirleri atla argvye koyma
         }
         else if(tmp->type == TWORD)
         {
-            count++;
-            cmd->argv[cmd->i++] = ft_strdup(tmp->value);
+            count++; //word saydır
+            cmd->argv[cmd->i++] = ft_strdup(tmp->value); //argvye komutu ekle
         }
         tmp = tmp->next;
     }
