@@ -84,6 +84,7 @@ void	add_env_node(t_shell *shell, char *key, char *value);
 int		built_export(t_shell *shell, t_command *cmd);
 int		built_unset(t_shell *shell, t_command *cmd);
 int		built_env(t_shell *shell);
+int		built_exit(t_command *cmd);
 
 
 

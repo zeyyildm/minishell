@@ -28,6 +28,8 @@ int init_builtin_ex(t_shell *shell, t_command *cmd)
         return (built_unset(shell, cmd));
     else if (is_cmd(name, "env"))
         return (built_env(shell));
+    else if (is_cmd(name, "exit"))
+        return (built_exit(cmd));
     return (-1);
 }
 
@@ -36,11 +38,11 @@ int built_echo(t_command *cmd)
     int i;
 
     i = 1;
-    while(cmd->argv[i]) //echodan sonra gelen yazdırmak istediklerimiz
+    while(cmd->argv[i])
     {
         printf("%s", cmd->argv[i]);
         if(cmd->argv[i + 1])
-            printf(" "); //yazdırır ve araya bir boşluk ekler
+            printf(" ");
         i++;
     }
     printf("\n");
@@ -51,7 +53,7 @@ static char *get_env_values(t_env *env, char *key)
 {
     while(env)
     {
-        if(is_cmd(env->key, key)) //key'i "X" olaninin kalanini döndürüyor
+        if(is_cmd(env->key, key))
             return env->value;
         env = env->next;
     }
@@ -78,22 +80,22 @@ int	built_cd(t_shell *shell,t_command *cmd)
     char	*old_pwd;
     char	*new_pwd;
 	
-    if (!cmd->argv[1]) //arguman yoksa home'a gitmek zorunda
+    if (!cmd->argv[1])
        path_target = get_env_values(shell->env, "HOME");
     else
-        path_target = cmd->argv[1]; //arguman varsa yazilan pathe gider
+        path_target = cmd->argv[1];
     if (!path_target)
     {
         perror("cd home bulma hatasiii");
         return (1);
     }
-    if(chdir(path_target) == -1) //change directory basarisiz olursa -1 döner
+    if(chdir(path_target) == -1)
     {
         perror("cd target bulma hatasiii");
         return (1);
     }
-    old_pwd = get_env_values(shell->env, "PWD"); //env listesinde pwd olarak kayıtlı mevcut dizin
-    new_pwd = getcwd(NULL, 0); //chdr yaptıktan sonra shellin şu anki dizisi
+    old_pwd = get_env_values(shell->env, "PWD");
+    new_pwd = getcwd(NULL, 0);
     if (!old_pwd || !new_pwd)
     {
         perror("cd  hatasiii");
@@ -102,7 +104,7 @@ int	built_cd(t_shell *shell,t_command *cmd)
     update_env(shell->env, "OLDPWD", old_pwd);
     update_env(shell->env, "PWD", new_pwd);
 
-    free(new_pwd); //old_pwd free etmedik cünkü env lsitesinde zaten kullaniliyor
+    free(new_pwd);
     return (0);
     
 }
@@ -110,7 +112,7 @@ int	built_cd(t_shell *shell,t_command *cmd)
 int built_pwd(t_command *cmd)
 {
 	(void)cmd;
-    char *path; //calisma dizinini tutacak
+    char *path;
     path = getcwd(NULL, 0);
     if(!path)
     {
@@ -145,37 +147,37 @@ void add_env_node(t_shell *shell, char *key, char *value)
     }
 
 }
-int built_export(t_shell *shell, t_command *cmd) //env listesine ekler veya gunceller boylece child processler gorebilir
+int built_export(t_shell *shell, t_command *cmd)
 {
 	int		i;
 	char	*equal;
 
 	i = 1;
-	if(!cmd->argv[1]) //eğer kullanıcı bir argüman girmediyse tüm envleri göstermek lazım
+	if(!cmd->argv[1])
 		return (built_env(shell));
 
 	while(cmd->argv[i] != NULL)
 	{
-		equal = ft_strchr(cmd->argv[i], '='); //myvar = hello içinde eşittir var mı diye geziyoruz
+		equal = ft_strchr(cmd->argv[i], '=');
 		if(equal == NULL)
 		{
-			char *key = ft_strdup(cmd->argv[i]); //MYVAR'ı kopyalar
-			if(get_env_values(shell->env, key) == NULL) //env listesinde "MYVAR" var mi diye bakar
-				add_env_node(shell, key, NULL); //yoksa env listesine myvarı ekle
+			char *key = ft_strdup(cmd->argv[i]);
+			if(get_env_values(shell->env, key) == NULL)
+				add_env_node(shell, key, NULL);
 			free(key);
 			i++;
 			continue;
 		}
 
-		else //önce eşittirden önesini key olarak bulmamız lazımm
+		else
 		{
 			char *key = ft_substr(cmd->argv[i], 0, equal - cmd->argv[i]);
-			char *value = ft_strdup(equal + 1); // hello kısmını alır
+			char *value = ft_strdup(equal + 1);
 
-			if(get_env_values(shell->env, key)) //key daha önceden var mı diye bakarız
-				update_env(shell->env, key, value); //var olan key', düzenle
+			if(get_env_values(shell->env, key))
+				update_env(shell->env, key, value);
 			else
-				add_env_node(shell, key, value); //eğer yoksa da bu değişkeni env listesine ekle
+				add_env_node(shell, key, value);
 			free(key);
 			free(value);
 			i++;
@@ -184,50 +186,63 @@ int built_export(t_shell *shell, t_command *cmd) //env listesine ekler veya gunc
 	return (0);
 }
 
-int built_unset(t_shell *shell, t_command *cmd) //değişkeni shell env lişstesinden kaldırır artik child goremez
+int built_unset(t_shell *shell, t_command *cmd)
 {
 	int i;
 	t_env	*tmp;
 	t_env	*prev;
 
 	i = 1;
-	while(cmd->argv[i]) //env listesi icinde gez
+	while(cmd->argv[i])
 	{
 		tmp = shell->env;
 		prev = NULL;
 
 		while(tmp)
 		{
-			if (is_cmd(tmp->key, cmd->argv[i])) //env listesi içinde MYVAR ' ı buldu
+			if (is_cmd(tmp->key, cmd->argv[i]))
 			{
 				if(prev == NULL)
-					shell->env = tmp->next; //başı kaldır. bu eğer myvar baştaysa çalışır
+					shell->env = tmp->next;
 				else
-					prev->next = tmp->next; //sonra bagla
+					prev->next = tmp->next;
 				free(tmp->key);
 				free(tmp->value);
 				free(tmp);
 				break;
 			}
-			prev = tmp; //listede ilerlemeden şu anki node u hep önceki olarak kayıt altında tutuyoruz ki kod MYVAR'dan öncesinin ne olduğunu bilebilsin
+			prev = tmp;
 			tmp = tmp->next;
-	
 		}
 		i++;
 	}
 	return (0);
 }
 
-int built_env(t_shell *shell) //bu fonks env listesindeki KEY=VALUE ikililerini bastırmalı
+int built_env(t_shell *shell)
 {
     t_env *tmp;
 
     tmp = shell->env;
-    while(tmp) //env listesi icinde geziyoruz
+    while(tmp)
     {
-        if(tmp->value) //eger value su varsa
-            printf("%s=%s\n", tmp->key, tmp->value); // key=value yazdir
-        tmp = tmp->next; //listede ilerle
+        if(tmp->value)
+            printf("%s=%s\n", tmp->key, tmp->value);
+        tmp = tmp->next;
     }
     return (0);
+}
+
+int built_exit(t_command *cmd)
+{
+    //exit-code: programın kapattığında os e döndürdüğü 0-255 arasındaki sayı
+    //0 = başarılı diğerleri hata
+    //shellde her bir komut exit code bırakır $? ile kodu öğrenebiliriz
+    int exit_code;
+
+    exit_code = 0;
+    if(cmd->argv[1]) //exit 42
+        exit_code = ft_atoi(cmd->argv[1]);
+    printf("exit\n");
+    exit(exit_code); //burada process zorlanır, tüm kaynaklar temizlenir, fdler kapanır, parenta sinyal gider
 }
