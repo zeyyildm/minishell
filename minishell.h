@@ -75,7 +75,16 @@ t_command *parser(t_token *t, t_command *cmd);
 void	print_commands(t_command *cmd);
 void	print_tokens(t_token *head);
 void	print_env_debug(t_env *env);
-void get_env(t_shell *shell);
+void	get_env(t_shell *shell);
+int		init_builtin_ex(t_shell *shell, t_command *cmd);
+int		built_echo(t_command *cmd);
+int		built_cd(t_shell *shell,t_command *cmd);
+int		built_pwd(t_command *cmd);
+void	add_env_node(t_shell *shell, char *key, char *value);
+int		built_export(t_shell *shell, t_command *cmd);
+int		built_unset(t_shell *shell, t_command *cmd);
+int		built_env(t_shell *shell);
+
 
 
 

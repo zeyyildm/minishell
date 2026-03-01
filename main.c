@@ -143,6 +143,8 @@ int main(int ac, char **av, char **envp)
         if(shell.tokens->type == TPIPE)
             exit(1); 
         cmdHead = parser(shell.tokens,shell.commands);
+        t_command *cur = cmdHead;
+        while (cur) { init_builtin_ex(&shell, cur); cur = cur->next; }  
         // int i;
         // while(cmdHead)
         // {
@@ -155,9 +157,9 @@ int main(int ac, char **av, char **envp)
         //     printf("diger komut: \n");
         //     cmdHead = cmdHead->next;
         // }
-        print_tokens(shell.tokens);
-        print_commands(cmdHead);
-        print_env_debug(shell.env);
+        //print_tokens(shell.tokens);
+        //print_commands(cmdHead);
+        //print_env_debug(shell.env);
 
 
         free(line);

@@ -1,5 +1,7 @@
 #include "minishell.h"
 
+//bu fonks shell başladığı gibi otomatik çalışacak, ortam değişkenlerini yükleyecek
+//shellin env listesi dolu olacak
 void get_env(t_shell *shell)
 {
     t_env *new_env;
