@@ -33,19 +33,27 @@ int init_builtin_ex(t_shell *shell, t_command *cmd)
     return (-1);
 }
 
-int built_echo(t_command *cmd)
+int built_echo(t_command *cmd) //echo -n newline basmamasını söyler
 {
     int i;
+    int flag;
 
     i = 1;
+    flag = 1;
+    if(cmd->argv[i] && is_cmd(cmd->argv[1], "-n"))
+    {
+        flag = 0; //if şartına girmesin diye
+        i = 2;
+    }
     while(cmd->argv[i])
     {
         printf("%s", cmd->argv[i]);
         if(cmd->argv[i + 1])
-            printf(" ");
+                printf(" ");
         i++;
     }
-    printf("\n");
+    if(flag == 1)
+        printf("\n");
     return (0);    
 }
 
@@ -74,7 +82,7 @@ static void update_env(t_env *env, char *key, char *new_value)
     }
 }
 
-int	built_cd(t_shell *shell,t_command *cmd)
+int	built_cd(t_shell *shell,t_command *cmd) //cd - ncekine dizine döner
 {
     char	*path_target;
     char	*old_pwd;
@@ -82,6 +90,8 @@ int	built_cd(t_shell *shell,t_command *cmd)
 	
     if (!cmd->argv[1])
        path_target = get_env_values(shell->env, "HOME");
+    else if(is_cmd(cmd->argv[1], "-"))
+        path_target = get_env_values(shell->env, "OLDPWD");
     else
         path_target = cmd->argv[1];
     if (!path_target)
