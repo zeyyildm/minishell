@@ -1,44 +1,119 @@
 #include "minishell.h"
 
-char *search_env()
+char *get_env_value(t_shell *shell, char *key)
+{
+    t_env *tmp;
+
+    tmp = shell->env;
+    while (tmp)
+    {
+        if (ft_strncmp(tmp->key, key, ft_strlen(key)) == 0 && tmp->key[ft_strlen(key)] == '\0')
+        {
+            return tmp->value;
+        }
+        tmp = tmp->next;
+    }
+    return NULL;
+}
+
+int expand_variable(    t_shell *shell, char *arg ,char **result)
+{
+    char    *key_name;
+    int    i;
+
+    i = 0;
+    while (arg[i] && (ft_isalnum(arg[i]) || arg[i] == '_'))
+    {
+        i++;
+    }
+    key_name = ft_substr(arg, 0, i);
+    if(key_name)
+    {
+        char *value = get_env_value(shell, key_name);
+        if (value)
+        {
+            *result = ft_strjoin(*result, value);
+        }
+        free(key_name);
+        return i + 1;
+    }
+    return 0;
+}
 
 
-void expand_arg(t_shell *shell, char *arg)
+char *append_char(char *str,char c)
+{
+    char *new_str;
+    int size;
+    int i;
+
+    size = ft_strlen(str);
+    new_str = malloc(size + 2);
+    if (!new_str)
+        return NULL;
+    i = 0;
+    while (str[i])
+    {
+        new_str[i] = str[i];
+        i++;
+    }
+    new_str[i] = c;
+    new_str[i + 1] = '\0';
+    free(str);
+    return new_str;
+}
+
+char *expand_arg(t_shell *shell, char *arg)
 {
     char    *new_arg;
     int     i;
-    int     j;
+    char    state;
     
     i = 0;
-    j = 0;
+    state = 0;
+    new_arg = ft_strdup("");
     while (arg[i])
     {
-        if(arg[i] !='"' || arg[i] != '\'')
-            j++;
-        if(arg[i] == '"')
+        if(arg[i] == '\'' && state != '"')
         {
-            
+            if(state == '\'')
+                state = 0;
+            else
+                state = '\'';
         }
-        if (j != 0)
-
+        else if(arg[i] == '"' && state != '\'')
+        {
+            if(state == '"')
+                state = 0;
+            else
+                state = '"';
+        }
+        else if (arg[i] == '$' && state != '\'')
+        {
+            i += expand_variable(shell, arg  + i + 1,&new_arg);
+            continue;
+        }
+        else
+            new_arg = append_char(new_arg, arg[i]);
         i++;
     }
-    
+    return (new_arg);
 }
 
 void expanded(t_shell *shell)
 {
     int i;
 
-    while (shell->command)
+    t_command *tmp;
+    tmp = shell->commands;
+    while (tmp)
     {
         i = 0;
-        while (shell->command->args[i])
+        while (tmp->argv[i])
         {
-            shell->command->args[i] = expand_arg(shell, shell->command->args[i]);
+            tmp->argv[i] = expand_arg(shell, tmp->argv[i]);
             i++;
         }
-        shell->command = shell->command->next;
+        tmp = tmp->next;
     }
-    
 }
