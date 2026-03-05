@@ -85,7 +85,9 @@ int		built_export(t_shell *shell, t_command *cmd);
 int		built_unset(t_shell *shell, t_command *cmd);
 int		built_env(t_shell *shell);
 int		built_exit(t_command *cmd);
-
+void	execute_pipe(t_shell *shell, t_command *cmd);
+void	execute_basic(t_shell *shell, t_command *cmd);
+int		is_cmd(char *name, char *cmd);
 
 
 

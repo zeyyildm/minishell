@@ -143,25 +143,14 @@ int main(int ac, char **av, char **envp)
         if(shell.tokens->type == TPIPE)
             exit(1); 
         cmdHead = parser(shell.tokens,shell.commands);
-        t_command *cur = cmdHead;
-        while (cur) { init_builtin_ex(&shell, cur); cur = cur->next; }  
-        // int i;
-        // while(cmdHead)
-        // {
-        //     i= 0;
-        //     while (cmdHead->argv && cmdHead->argv[i])
-        //     {
-        //         printf(" %s: \n", cmdHead->argv[i]);
-        //         i++;
-        //     }
-        //     printf("diger komut: \n");
-        //     cmdHead = cmdHead->next;
-        // }
-        //print_tokens(shell.tokens);
-        //print_commands(cmdHead);
-        //print_env_debug(shell.env);
-
-
+        if (cmdHead->next)  // Pipe VAR (2+ komut)
+            execute_pipe(&shell, cmdHead);
+        else if (cmdHead)   // TEK KOMUT
+        {
+            int ret = init_builtin_ex(&shell, cmdHead);
+            if (ret == -1)  // Built-in değilse
+                execute_basic(&shell, cmdHead);
+        }       
         free(line);
     }
     return (0);

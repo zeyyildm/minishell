@@ -1,7 +1,7 @@
 #include "../minishell.h"
 
 
-static int is_cmd(char *name, char *cmd)
+int is_cmd(char *name, char *cmd)
 {
     if (!name || !cmd)
         return (0);
@@ -33,7 +33,7 @@ int init_builtin_ex(t_shell *shell, t_command *cmd)
     return (-1);
 }
 
-int built_echo(t_command *cmd) //echo -n newline basmamasını söyler
+int built_echo(t_command *cmd) //echo -e eklenecek!!!!
 {
     int i;
     int flag;

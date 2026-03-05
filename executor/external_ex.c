@@ -10,7 +10,6 @@
 
 static char *find_path(t_shell *shell) //bunun yerine get_env_values da kulllanılır staticten çıkartılıp
 {
-    printf("geldi mi 1");
     t_env *tmp = shell->env;
 
     while(tmp)
@@ -24,7 +23,6 @@ static char *find_path(t_shell *shell) //bunun yerine get_env_values da kulllan�
 
 static char *find_ex_path(t_shell *shell, char *cmd_name)
 {
-    printf("geldi mi 2");
     char    *path_env;
     char    **paths;
     char    *full_path;
@@ -76,7 +74,6 @@ void execute_basic(t_shell *shell, t_command *cmd)
     char *full_path;
 
     full_path = find_ex_path(shell, cmd->argv[0]);
-    printf("Full path: %s\n", full_path);
     if(!full_path)
     {
         printf("hataaa");
