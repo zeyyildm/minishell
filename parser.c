@@ -63,23 +63,25 @@ int word_save(t_command *cmd , t_token *t)
 {
     t_token *tmp;
     int count;
+    int i;
 
     count = 0;
-    tmp = t;    
+    tmp = t;   
+    i = 0; 
     while (tmp && tmp->type != TPIPE) //pipe gelene kadar tüm tokenları gez
     {
         if (tmp->next && (tmp->type == T_REDIR_IN || tmp->type == T_REDIR_OUT ||tmp->type == T_REDIR_APPEND || tmp->type == T_HEREDOC))
-        {
             tmp = tmp->next; //redirleri atla argvye koyma
-        }
+
         else if(tmp->type == TWORD)
         {
-            count++; //word saydır
-            cmd->argv[cmd->i++] = ft_strdup(tmp->value); //argvye komutu ekle
+            cmd->argv[i++] = ft_strdup(tmp->value); // raw token sakla, expanded() işleyecek
+            count++;
         }
         tmp = tmp->next;
     }
-    cmd->argv[count] = NULL;
+    cmd->argv[i] = NULL;
+    cmd->i = i;
     return count;
 }
 

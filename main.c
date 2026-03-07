@@ -142,22 +142,19 @@ int main(int ac, char **av, char **envp)
         shell.tokens = tokenizer(line);
         if(shell.tokens->type == TPIPE)
             exit(1); 
-        cmdHead = parser(shell.tokens,shell.commands);
-        if (cmdHead->next)  // Pipe VAR (2+ komut)
-            execute_pipe(&shell, cmdHead);
-        else if (cmdHead)   // TEK KOMUT
-        {
-            int ret = init_builtin_ex(&shell, cmdHead);
-            if (ret == -1)  // Built-in değilse
-                execute_basic(&shell, cmdHead);
-        }       
+    cmdHead = parser(shell.tokens, shell.commands);
+    shell.commands = cmdHead;
+    if (cmdHead)
+        expanded(&shell);
+    if (cmdHead->next)
+        execute_pipe(&shell, cmdHead, -1);
+    else if (cmdHead)
+    {
+        int ret = init_builtin_ex(&shell, cmdHead);
+        if (ret == -1)
+            execute_basic(&shell, cmdHead);
+    }
         free(line);
     }
     return (0);
 }
-
-
-// | tan önce lkesinlikle kellime olmalı 
-// ara katmanda heredoc bakacaz 
-// tokenizeerrda çoklu redirler çalılşıyor 
-//

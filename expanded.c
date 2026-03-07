@@ -1,6 +1,6 @@
 #include "minishell.h"
 
-char *get_env_value(t_shell *shell, char *key)
+static char *get_env_value(t_shell *shell, char *key)
 {
     t_env *tmp;
 
@@ -16,7 +16,7 @@ char *get_env_value(t_shell *shell, char *key)
     return NULL;
 }
 
-int expand_variable(    t_shell *shell, char *arg ,char **result)
+static int expand_variable(t_shell *shell, char *arg ,char **result)
 {
     char    *key_name;
     int    i;
@@ -41,7 +41,7 @@ int expand_variable(    t_shell *shell, char *arg ,char **result)
 }
 
 
-char *append_char(char *str,char c)
+static char *append_char(char *str,char c)
 {
     char *new_str;
     int size;
@@ -98,6 +98,38 @@ char *expand_arg(t_shell *shell, char *arg)
         i++;
     }
     return (new_arg);
+}
+
+char *for_quotes(char *s)
+{
+    char    *line;
+    int     i;
+    int     j;
+    char    k;
+
+    k = 0;
+    i = 0;
+    j = 0;
+    line = malloc(ft_strlen(s));
+    if(!line)
+        return (NULL);
+    while(s[i])
+    {
+        if((s[i] == '"' || s[i] == '\'') && k == 0)
+        {
+            k = s[i];
+            i++;
+            while(s[i] && s[i] != k)
+                line[j++] = s[i++];
+            if(s[i] == k)
+                i++;
+            k = 0;
+            continue;
+        }
+        line[j++] = s[i++];
+    }
+    line[j] = '\0';
+    return (line);
 }
 
 void expanded(t_shell *shell)
