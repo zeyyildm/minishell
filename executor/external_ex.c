@@ -89,6 +89,8 @@ void execute_basic(t_shell *shell, t_command *cmd)
 
     if(pid == 0)
     {
+        if(exec_redir(cmd))
+            exit(1);
         execve(full_path, cmd->argv, shell->envp); 
         perror("execve");
         exit(126);

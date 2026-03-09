@@ -112,6 +112,10 @@ void init_env(t_shell *shell)
     shell->env = NULL;
     get_env(shell);
 }
+void free_lists(t_shell *shell)
+{
+    
+}
 
 int main(int ac, char **av, char **envp)
 {
@@ -142,18 +146,37 @@ int main(int ac, char **av, char **envp)
         shell.tokens = tokenizer(line);
         if(shell.tokens->type == TPIPE)
             exit(1); 
-    cmdHead = parser(shell.tokens, shell.commands);
-    shell.commands = cmdHead;
-    if (cmdHead)
-        expanded(&shell);
-    if (cmdHead->next)
-        execute_pipe(&shell, cmdHead, -1);
-    else if (cmdHead)
-    {
-        int ret = init_builtin_ex(&shell, cmdHead);
-        if (ret == -1)
-            execute_basic(&shell, cmdHead);
-    }
+        cmdHead = parser(shell.tokens, shell.commands);
+        shell.commands = cmdHead;
+        if (cmdHead)
+            expanded(&shell);
+        if (cmdHead && cmdHead->next)
+            execute_pipe(&shell, cmdHead, -1);
+        else if (cmdHead)
+        {
+            // Parent builtin ise (cd, export, unset, exit)
+            if (is_parent_builtin(cmdHead->argv[0]))
+            {
+                int saved_stdin = dup(STDIN_FILENO);
+                int saved_stdout = dup(STDOUT_FILENO);
+                
+                if (exec_redir(cmdHead) == 0)
+                    init_builtin_ex(&shell, cmdHead);
+                
+                dup2(saved_stdin, STDIN_FILENO);
+                dup2(saved_stdout, STDOUT_FILENO);
+                close(saved_stdin);
+                close(saved_stdout);
+            }
+            else
+            {
+                // Diğer komutlar fork ile çalışır (echo, pwd, env, external)
+                int ret = init_builtin_ex(&shell, cmdHead);
+                if (ret == -1)
+                    execute_basic(&shell, cmdHead);
+            }
+        }
+        free_lists();
         free(line);
     }
     return (0);

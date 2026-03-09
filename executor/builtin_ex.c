@@ -9,6 +9,16 @@ int is_cmd(char *name, char *cmd)
         return (0);
     return (ft_strncmp(name, cmd, ft_strlen(cmd)) == 0);
 }
+
+// Ortamı değiştiren builtin'ler parent'ta çalışmalı
+int is_parent_builtin(char *cmd)
+{
+    if (!cmd)
+        return (0);
+    return (is_cmd(cmd, "cd") || is_cmd(cmd, "export") || 
+            is_cmd(cmd, "unset") || is_cmd(cmd, "exit"));
+}
+
 int init_builtin_ex(t_shell *shell, t_command *cmd)
 {
     char *name;
@@ -27,34 +37,52 @@ int init_builtin_ex(t_shell *shell, t_command *cmd)
     else if (is_cmd(name, "unset"))
         return (built_unset(shell, cmd));
     else if (is_cmd(name, "env"))
-        return (built_env(shell));
+        return (built_env(shell, cmd));
     else if (is_cmd(name, "exit"))
         return (built_exit(cmd));
     return (-1);
 }
 
-int built_echo(t_command *cmd) //echo -e eklenecek!!!!
+int built_echo(t_command *cmd)
 {
+    pid_t pid;
+    int status;
     int i;
     int flag;
 
-    i = 1;
-    flag = 1;
-    if(cmd->argv[i] && is_cmd(cmd->argv[1], "-n"))
+    pid = fork();
+    if (pid < 0)
     {
-        flag = 0; //if şartına girmesin diye
-        i = 2;
+        perror("fork");
+        return (1);
     }
-    while(cmd->argv[i])
+    if (pid == 0)
     {
-        printf("%s", cmd->argv[i]);
-        if(cmd->argv[i + 1])
+        if (exec_redir(cmd) != 0)
+            exit(1);
+        
+        i = 1;
+        flag = 1;
+        if(cmd->argv[i] && is_cmd(cmd->argv[1], "-n"))
+        {
+            flag = 0;
+            i = 2;
+        }
+        while(cmd->argv[i])
+        {
+            printf("%s", cmd->argv[i]);
+            if(cmd->argv[i + 1])
                 printf(" ");
-        i++;
+            i++;
+        }
+        if(flag == 1)
+            printf("\n");
+        exit(0);
     }
-    if(flag == 1)
-        printf("\n");
-    return (0);    
+    waitpid(pid, &status, 0);
+    if (WIFEXITED(status))
+        return (WEXITSTATUS(status));
+    return (1);
 }
 
 static char *get_env_values(t_env *env, char *key)
@@ -121,17 +149,35 @@ int	built_cd(t_shell *shell,t_command *cmd) //cd - ncekine dizine döner
 
 int built_pwd(t_command *cmd)
 {
-	(void)cmd;
+    pid_t pid;
+    int status;
     char *path;
-    path = getcwd(NULL, 0);
-    if(!path)
+
+    pid = fork();
+    if (pid < 0)
     {
-        perror("pwd error");
+        perror("fork");
         return (1);
     }
-    printf("%s\n", path);
-    free(path);
-    return (0);
+    if (pid == 0)
+    {
+        if (exec_redir(cmd) != 0)
+            exit(1);
+        
+        path = getcwd(NULL, 0);
+        if(!path)
+        {
+            perror("pwd error");
+            exit(1);
+        }
+        printf("%s\n", path);
+        free(path);
+        exit(0);
+    }
+    waitpid(pid, &status, 0);
+    if (WIFEXITED(status))
+        return (WEXITSTATUS(status));
+    return (1);
 }
 void add_env_node(t_shell *shell, char *key, char *value)
 {
@@ -161,10 +207,21 @@ int built_export(t_shell *shell, t_command *cmd)
 {
 	int		i;
 	char	*equal;
+	t_env	*tmp;
 
 	i = 1;
 	if(!cmd->argv[1])
-		return (built_env(shell));
+	{
+		// Argumansiz export -> env gibi calis (parent'tayiz)
+		tmp = shell->env;
+		while(tmp)
+		{
+			if(tmp->value)
+				printf("%s=%s\n", tmp->key, tmp->value);
+			tmp = tmp->next;
+		}
+		return (0);
+	}
 
 	while(cmd->argv[i] != NULL)
 	{
@@ -229,18 +286,36 @@ int built_unset(t_shell *shell, t_command *cmd)
 	return (0);
 }
 
-int built_env(t_shell *shell)
+int built_env(t_shell *shell, t_command *cmd)
 {
+    pid_t pid;
+    int status;
     t_env *tmp;
 
-    tmp = shell->env;
-    while(tmp)
+    pid = fork();
+    if (pid < 0)
     {
-        if(tmp->value)
-            printf("%s=%s\n", tmp->key, tmp->value);
-        tmp = tmp->next;
+        perror("fork");
+        return (1);
     }
-    return (0);
+    if (pid == 0)
+    {
+        if (exec_redir(cmd) != 0)
+            exit(1);
+        
+        tmp = shell->env;
+        while(tmp)
+        {
+            if(tmp->value)
+                printf("%s=%s\n", tmp->key, tmp->value);
+            tmp = tmp->next;
+        }
+        exit(0);
+    }
+    waitpid(pid, &status, 0);
+    if (WIFEXITED(status))
+        return (WEXITSTATUS(status));
+    return (1);
 }
 
 int built_exit(t_command *cmd)

@@ -22,6 +22,8 @@ void execute_pipe(t_shell *shell, t_command *cmd, int prev_fd) //bu if else olar
                 dup2(prev_fd, STDIN_FILENO); //burda wcnin inputunu değiştiriyoruz
                 close(prev_fd);
             }
+            if (exec_redir(cmd))
+                exit(1);
             if ((init_builtin_ex(shell, cmd)) == -1)
                 execute_basic(shell, cmd);
             exit(1);
