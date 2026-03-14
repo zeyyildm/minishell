@@ -88,6 +88,7 @@ int		built_env(t_shell *shell, t_command *cmd);
 int		built_exit(t_command *cmd);
 void	execute_pipe(t_shell *shell, t_command *cmd, int prev_fd);
 void	execute_basic(t_shell *shell, t_command *cmd);
+void	exec_heredoc(t_shell *shell, t_command *cmd);
 int		is_cmd(char *name, char *cmd);
 void	expanded(t_shell *shell);
 char	*for_quotes(char *s);

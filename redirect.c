@@ -10,6 +10,13 @@ int exec_redir(t_command *cmd)
 
     while (tmp)
     {
+        // Heredoc'u burada handle etme (exec_heredoc yapacak)
+        if (tmp->type == T_HEREDOC)
+        {
+            tmp = tmp->next;
+            continue;
+        }
+
         filename = for_quotes(tmp->file); // Quote'ları temizle
         
         if(tmp->type == T_REDIR_IN)

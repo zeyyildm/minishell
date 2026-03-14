@@ -3,7 +3,7 @@ NAME = minishell
 CC = cc
 CFLAGS = -Wall -Wextra -Werror -g
 
-SRCS = main.c tokenizer.c parser.c print.c get_env.c expanded.c redirect.c \
+SRCS = main.c tokenizer.c parser.c print.c get_env.c expanded.c redirect.c exec_heredoc.c \
        executor/builtin_ex.c \
        executor/external_ex.c \
 	   executor/pipe_ex.c \
