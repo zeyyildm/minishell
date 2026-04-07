@@ -21,7 +21,7 @@ static char *find_path(t_shell *shell) //bunun yerine get_env_values da kulllanÄ
     return (NULL);
 }
 
-static char *find_ex_path(t_shell *shell, char *cmd_name)
+char *find_ex_path(t_shell *shell, char *cmd_name)
 {
     char    *path_env;
     char    **paths;

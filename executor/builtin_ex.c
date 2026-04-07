@@ -189,7 +189,7 @@ void add_env_node(t_shell *shell, char *key, char *value)
     if(value)
         new->value = ft_strdup(value);
     else
-        new->value = NULL;
+        new->value = ft_strdup("''");
     new->next = NULL;
 
     if(!shell->env)
@@ -203,6 +203,38 @@ void add_env_node(t_shell *shell, char *key, char *value)
     }
 
 }
+
+t_env *env_sort(t_env *env)
+{
+    t_env *i;
+    t_env *j;
+    char *tmp_key;
+    char *tmp_value;
+
+    i = env;
+    while (i)
+    {
+        j = i->next;
+        while (j)
+        {
+            if (ft_strncmp(i->key, j->key,ft_strlen(i->key)) > 0)
+            {
+                // swap key
+                tmp_key = i->key;
+                i->key = j->key;
+                j->key = tmp_key;
+
+                // swap value
+                tmp_value = i->value;
+                i->value = j->value;
+                j->value = tmp_value;
+            }
+            j = j->next;
+        }
+        i = i->next;
+    }
+    return env;
+}
 int built_export(t_shell *shell, t_command *cmd)
 {
 	int		i;
@@ -213,7 +245,8 @@ int built_export(t_shell *shell, t_command *cmd)
 	if(!cmd->argv[1])
 	{
 		// Argumansiz export -> env gibi calis (parent'tayiz)
-		tmp = shell->env;
+
+		tmp = env_sort(shell->env);
 		while(tmp)
 		{
 			if(tmp->value)

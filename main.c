@@ -6,7 +6,7 @@
 /*   By: hakalkan <hakalkan@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/10 16:31:21 by hakalkan          #+#    #+#             */
-/*   Updated: 2026/02/14 20:07:56 by hakalkan         ###   ########.fr       */
+/*   Updated: 2026/04/07 21:33:48 by hakalkan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -157,6 +157,8 @@ void	free_commands(t_command *cmd)
 		}
 
 		free_redirs(cmd->redirs);
+        if (cmd->heredoc_fd != -1)
+            close(cmd->heredoc_fd);
 		free(cmd);
 		cmd = tmp;
 	}
@@ -216,7 +218,18 @@ int heredoc_search(t_command *cmd)
     }
     return (0);
 }
+t_token *last_token(t_token **token)
+{
+    t_token *tmp;
 
+    tmp = *token;
+    while (tmp->next)
+    {
+        tmp = tmp->next;
+    }
+    
+    return tmp;
+}
 int main(int ac, char **av, char **envp)
 {
     char *line;
@@ -228,6 +241,7 @@ int main(int ac, char **av, char **envp)
     shell.commands = NULL;
     t_command *cmdHead;
     cmdHead = NULL;
+    t_token *tmp;
 
     (void)ac;
     (void)av;
@@ -244,42 +258,52 @@ int main(int ac, char **av, char **envp)
             continue;
         }
         shell.tokens = tokenizer(line);
-        if(shell.tokens->type == TPIPE)
-            exit(1); 
+        tmp = last_token(&shell.tokens);
+        if(shell.tokens->type == TPIPE || tmp->type == TPIPE)
+        {
+            printf("zsh: parse error near `|'\n");
+            continue;
+        }
         cmdHead = parser(shell.tokens, shell.commands);
         shell.commands = cmdHead;
         if (cmdHead)
             expanded(&shell);
-        if (cmdHead && cmdHead->next)
-            execute_pipe(&shell, cmdHead, -1);
-        else if (cmdHead)
+        if (cmdHead)
         {
-            // Heredoc kontrol et
+            // HER ZAMAN önce heredoc
             if (heredoc_search(cmdHead))
             {
-                // Heredoc varsa exec_heredoc çağır
-                exec_heredoc(&shell, cmdHead);
+                if (exec_heredoc(&shell, cmdHead) != 0)
+                    return 1;
             }
-            else if (is_parent_builtin(cmdHead->argv[0]))
+
+            //  sonra execution
+            if (cmdHead->next)
             {
-                // Parent builtin ise (cd, export, unset, exit)
-                int saved_stdin = dup(STDIN_FILENO);
-                int saved_stdout = dup(STDOUT_FILENO);
-                
-                if (exec_redir(cmdHead) == 0)
-                    init_builtin_ex(&shell, cmdHead);
-                
-                dup2(saved_stdin, STDIN_FILENO);
-                dup2(saved_stdout, STDOUT_FILENO);
-                close(saved_stdin);
-                close(saved_stdout);
+                execute_pipe(&shell, cmdHead, -1);
             }
             else
             {
-                // Diğer komutlar fork ile çalışır (echo, pwd, env, external)
-                int ret = init_builtin_ex(&shell, cmdHead);
-                if (ret == -1)
-                    execute_basic(&shell, cmdHead);
+                // Parent builtin ise (cd, export, unset, exit)
+                if (is_parent_builtin(cmdHead->argv[0]))
+                {
+                    int saved_stdin = dup(STDIN_FILENO);
+                    int saved_stdout = dup(STDOUT_FILENO);
+                    
+                    if (exec_redir(cmdHead) == 0)
+                        init_builtin_ex(&shell, cmdHead);
+                    
+                    dup2(saved_stdin, STDIN_FILENO);
+                    dup2(saved_stdout, STDOUT_FILENO);
+                    close(saved_stdin);
+                    close(saved_stdout);
+                }
+                else
+                {
+                    int ret = init_builtin_ex(&shell, cmdHead);
+                    if (ret == -1)
+                        execute_basic(&shell, cmdHead);
+                }
             }
         }
         free_lists(&shell);

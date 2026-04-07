@@ -6,7 +6,7 @@
 /*   By: hakalkan <hakalkan@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/16 13:43:08 by hakalkan          #+#    #+#             */
-/*   Updated: 2026/02/16 13:47:18 by hakalkan         ###   ########.fr       */
+/*   Updated: 2026/04/06 19:34:46 by hakalkan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,85 +17,84 @@
 // Shell heredoc için geçici bir pipe açar
 // fd[1] ucu = heredoc yazma ucu
 // fd[0] ucu = komut okuma ucu
-
-void exec_heredoc(t_shell *shell, t_command *cmd)
+void    handle_heredoc(t_shell *shell, t_redir *redir, int *fd)
 {
-	t_command	*tmp;
-	t_redir		*redir;
-	int			fd[2];
-	pid_t		pid;
-	char		*line;
-	char		*delimiter;
+    char    *line;
+    char    *delimiter;
+    int     expand;
 
-	tmp = cmd;
-	while (tmp)
-	{
-		redir = tmp->redirs;
-		while (redir)
-		{
-			if (redir->type == T_HEREDOC)
-			{
-				if (pipe(fd) == -1)
-				{
-					perror("pipe");
-					return;
-				}
+    delimiter = for_quotes(redir->file);
 
-				// Delimiter'ı quote'lardan temizle
-				delimiter = for_quotes(redir->file);
+    // quoted ise expand YOK
+    if (ft_strchr(redir->file, '\'') || ft_strchr(redir->file, '"'))
+        expand = 0;
+    else
+        expand = 1;
 
-				// Parent process user'dan heredoc satırlarını okur
-				while (1)
-				{
-					line = readline("> ");
-					if (!line)
-						break;
+    while (1)
+    {
+        line = readline("> ");
+        if (!line)
+        {
+            printf("warning: here-document delimited by end-of-file\n");
+            break;
+        }
+        if (ft_strncmp(line, delimiter,ft_strlen(delimiter)) == 0)
+        {
+            free(line);
+            break;
+        }
+        if (expand)
+        {
+            char *tmp = expand_arg(shell, line);
+            free(line);
+            line = tmp;
+        }
+        write(fd[1], line, ft_strlen(line));
+        write(fd[1], "\n", 1);
+        free(line);
+    }
+    free(delimiter);
+}
+int exec_heredoc(t_shell *shell, t_command *cmd)
+{
+    t_redir    *redir;
+    int        fd[2];
+    pid_t      pid;
 
-					// Delimiter ile eşit mi kontrol et
-					if (ft_strncmp(line, delimiter, ft_strlen(delimiter)) == 0
-						&& ft_strlen(line) == ft_strlen(delimiter))
-					{
-						free(line);
-						break;
-					}
+    redir = cmd->redirs;
+    while (redir)
+    {
+        if (redir->type == T_HEREDOC)
+        {
+            if (pipe(fd) == -1)
+                return (perror("pipe"), 1);
 
-					// Satırı pipe'a yaz
-					write(fd[1], line, ft_strlen(line));
-					write(fd[1], "\n", 1);
-					free(line);
-				}
-				close(fd[1]);	// Yazma ucunu kapat, child EOF alsin
-				free(delimiter);
+            pid = fork();
+            if (pid < 0)
+                return (perror("fork"), 1);
 
-				// Child process oluştur
-				pid = fork();
-				if (pid < 0)
-				{
-					perror("fork");
-					return;
-				}
-				if (pid == 0)
-				{
-					// Child: STDIN'i heredoc pipe'ından oku
-					dup2(fd[0], STDIN_FILENO);
-					close(fd[0]);
+            if (pid == 0)
+            {
+                close(fd[0]);
+                handle_heredoc(shell, redir, fd);
+                close(fd[1]);
+                exit(0);
+            }
+            else
+            {
+                close(fd[1]);
+                waitpid(pid, NULL, 0);
 
-					// Diğer redirectionları yap (heredoc hariç)
-					if (exec_redir(tmp) != 0)
-						exit(1);
+                // eski heredoc varsa kapat
+                if (cmd->heredoc_fd != -1)
+                    close(cmd->heredoc_fd);
 
-					// Komut çalıştır
-					if (init_builtin_ex(shell, tmp) == -1)
-						execute_basic(shell, tmp);
-					exit(0);
-				}
-
-				// Parent: okuma ucunu kapat ve child'i bekle
-				close(fd[0]);
-				waitpid(pid, NULL, 0);
-			}
-			redir = redir->next;
-		}
-		tmp = tmp->next;
-	}
+                //  BURASI DOĞRU
+                cmd->heredoc_fd = fd[0];
+            }
+        }
+        redir = redir->next;
+    }
+    return (0);
 }

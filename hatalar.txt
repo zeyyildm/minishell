@@ -1,0 +1,68 @@
+Kritik sorunlar
+Her quote hatasında shell tamamen kapanıyor (exit(1)):
+main.c:242
+Normalde prompt’a dönmesi gerekir.
+| ile başlayan inputta da shell kapanıyor (exit(1)):
+main.c:250 +
+Bu da syntax error verip devam etmeliydi.
+Pipeline varsa heredoc hazırlanmıyor (sadece tek komut branch’inde hazırlanıyor):
+main.c:255 +
+ve pipeline kodu: pipe_ex.c:4
+Pipeline child içinde execute_basic() çağrısı yapınca içeride tekrar fork ediyor; pipe akışı bozulabilir:
+pipe_ex.c:28, pipe_ex.c:66, external_ex.c:73
+Heredoc / parse doğruluğu
+Heredoc delimiter karşılaştırması prefix match; tam eşitlik değil:
+exec_heredoc.c:42
+(EOFx gibi değerler yanlışlıkla stop edebilir.)
+Redirection listesi ters ekleniyor (new->next = cmd->redirs), execution sırası shell davranışından sapabilir:
+parser.c:98
+Expansion / bellek
+for_quotes() allocation 1 byte eksik (malloc(ft_strlen(s))):
+expanded.c:113
+'\0' için yer yok -> overflow riski.
+expanded() içinde eski arg free edilmeden üzerine yazılıyor:
+expanded.c:146
+leak var.
+Variable expand’de ft_strjoin sonucu eski *result free edilmediği için leak:
+expanded.c:35
+Builtin / env davranışı
+export KEY için value NULL yerine "''" atanıyor; env/export çıktısı yanlış olur:
+builtin_ex.c:192
+env_sort() karşılaştırması hatalı (strncmp length olarak sadece soldaki key uzunluğu):
+builtin_ex.c:220
+sıralama yanlış olabilir.
+External komutlar shell->envp kullanıyor ama export/unset sonrası bu dizi güncellenmiyor:
+external_ex.c:94, başlangıç ataması main.c:226
+child process güncel env’i görmeyebilir.
+Küçük ama önemli
+Hata mesajları belirsiz (printf("hataaa")):
+external_ex.c:79
+perror + doğru exit code daha doğru olur.
+
+ < nurten >> deneme
+minishell$ < nurten >> deneme
+minishell$ 
+
+bu hatalı çalışıyor 
+ minishell git:(main) ✗ cat << EOF << EOF2 > deneme
+heredoc> asd
+heredoc> asd
+heredoc> asd
+heredoc> asd
+heredoc> asd
+heredoc> EOF
+heredoc> flskdjf
+heredoc> sdflksjdf
+heredoc> sdflkjsdf
+heredoc> EOF2
+➜  minishell git:(main) ✗ cat deneme 
+asd
+asd
+asd
+asd
+asd
+flskdjf
+sdflksjdf
+sdflkjsdf
+
+hattalı  

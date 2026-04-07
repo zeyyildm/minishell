@@ -8,6 +8,13 @@ int exec_redir(t_command *cmd)
 
     tmp = cmd->redirs;
 
+    if (cmd->heredoc_fd != -1)
+    {
+        dup2(cmd->heredoc_fd, STDIN_FILENO);
+        close(cmd->heredoc_fd);
+        cmd->heredoc_fd = -1;
+    }
+
     while (tmp)
     {
         // Heredoc'u burada handle etme (exec_heredoc yapacak)

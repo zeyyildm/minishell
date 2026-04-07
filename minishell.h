@@ -6,7 +6,7 @@
 /*   By: hakalkan <hakalkan@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/19 04:15:59 by hakalkan          #+#    #+#             */
-/*   Updated: 2026/02/14 20:01:19 by hakalkan         ###   ########.fr       */
+/*   Updated: 2026/04/07 18:21:28 by hakalkan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,6 +58,7 @@ typedef struct s_command //parserın  ana çıktısı (çalıştırılacak olan 
 	char	**argv; //execveye gidecek olan
 	t_redir			*redirs; //input output ayarları
 	int 			i;
+	int             heredoc_fd;
 	struct s_command	*next;	 //pipeline için
 }t_command;
 
@@ -88,11 +89,15 @@ int		built_env(t_shell *shell, t_command *cmd);
 int		built_exit(t_command *cmd);
 void	execute_pipe(t_shell *shell, t_command *cmd, int prev_fd);
 void	execute_basic(t_shell *shell, t_command *cmd);
-void	exec_heredoc(t_shell *shell, t_command *cmd);
+int		exec_heredoc(t_shell *shell, t_command *cmd);
 int		is_cmd(char *name, char *cmd);
 void	expanded(t_shell *shell);
 char	*for_quotes(char *s);
 int		exec_redir(t_command *cmd);
+char	*expand_arg(t_shell *shell, char *arg);
+char	*find_ex_path(t_shell *shell, char *cmd_name);
+
+
 
 
 

@@ -6,7 +6,7 @@
 /*   By: hakalkan <hakalkan@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/10 16:32:06 by hakalkan          #+#    #+#             */
-/*   Updated: 2026/02/16 13:41:28 by hakalkan         ###   ########.fr       */
+/*   Updated: 2026/04/07 18:28:48 by hakalkan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,6 +37,7 @@ t_command *add_command(void)
     cmd->next = NULL;
     cmd->redirs = NULL;
     cmd->i = 0;
+    cmd->heredoc_fd = -1;
 
     return cmd;
 }
@@ -84,6 +85,20 @@ int word_save(t_command *cmd , t_token *t)
     cmd->i = i;
     return count;
 }
+void redir_add_back(t_command *cmd, t_redir *new)
+{
+    t_redir *tmp;
+
+    if (!cmd->redirs)
+    {
+        cmd->redirs = new;
+        return;
+    }
+    tmp = cmd->redirs;
+    while (tmp->next)
+        tmp = tmp->next;
+    tmp->next = new;
+}
 
 void redir_pars(t_command *cmd, t_token *t)
 {
@@ -94,8 +109,7 @@ void redir_pars(t_command *cmd, t_token *t)
     new = add_redir();
     new->type = t->type;
     new->file = ft_strdup(t->next->value);
-    new->next = cmd->redirs;
-    cmd->redirs = new;
+    redir_add_back(cmd, new);
 }
 
 t_command *parser(t_token *t, t_command *cmd)

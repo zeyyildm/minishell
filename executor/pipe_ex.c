@@ -1,5 +1,24 @@
 #include "../minishell.h"
 
+
+void exec_external_no_fork(t_shell *shell, t_command *cmd)
+{
+    char *full_path;
+
+    full_path = find_ex_path(shell, cmd->argv[0]);
+    if (!full_path)
+    {
+        printf("command not found\n");
+        exit(127);
+    }
+
+    if (exec_redir(cmd))
+        exit(1);
+
+    execve(full_path, cmd->argv, shell->envp);
+    perror("execve");
+    exit(126);
+}
 // ls | wc 
 void execute_pipe(t_shell *shell, t_command *cmd, int prev_fd) //bu if else olarak iki fonska bölünecek
 {
@@ -25,7 +44,7 @@ void execute_pipe(t_shell *shell, t_command *cmd, int prev_fd) //bu if else olar
             if (exec_redir(cmd))
                 exit(1);
             if ((init_builtin_ex(shell, cmd)) == -1)
-                execute_basic(shell, cmd);
+                exec_external_no_fork(shell, cmd);
             exit(1);
 		}
 		if (prev_fd != -1) //bu koşul parenttaki fd kapansin die
@@ -63,7 +82,7 @@ void execute_pipe(t_shell *shell, t_command *cmd, int prev_fd) //bu if else olar
             dup2(fd[1], STDOUT_FILENO);
             close(fd[1]);
             if ((init_builtin_ex(shell, cmd)) == -1)
-                execute_basic(shell, cmd);
+                exec_external_no_fork(shell, cmd);
             exit(1); //child process bitiyo
 		}
 
