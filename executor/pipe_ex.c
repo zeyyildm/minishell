@@ -25,6 +25,7 @@ void execute_pipe(t_shell *shell, t_command *cmd, int prev_fd) //bu if else olar
     int		fd[2]; //okuma ve yazma ucu
     pid_t	pid;
 	int		status;
+    int     ret;
 
 	if(cmd->next == NULL) //pipe yoksa
 	{
@@ -40,12 +41,14 @@ void execute_pipe(t_shell *shell, t_command *cmd, int prev_fd) //bu if else olar
             {
                 dup2(prev_fd, STDIN_FILENO); //burda wcnin inputunu değiştiriyoruz
                 close(prev_fd);
-            }
-            if (exec_redir(cmd))
+            }            // Eğer redirect fail ederse, çalışma duracak ama exit code 1            if (exec_redir(cmd) != 0)
+            {
                 exit(1);
-            if ((init_builtin_ex(shell, cmd)) == -1)
+            }
+            ret = init_builtin_ex(shell, cmd);
+            if (ret == -1)
                 exec_external_no_fork(shell, cmd);
-            exit(1);
+            exit(ret);
 		}
 		if (prev_fd != -1) //bu koşul parenttaki fd kapansin die
             close(prev_fd);
@@ -73,17 +76,23 @@ void execute_pipe(t_shell *shell, t_command *cmd, int prev_fd) //bu if else olar
 		}
 		if(pid == 0) //bu child processtir demek
 		{
-			if (prev_fd != -1)
+			if (prev_fd != -1) //bu tek komutlu değil bir çoklu pipe ın son komutu demek
             {
-                dup2(prev_fd, STDIN_FILENO);
+                dup2(prev_fd, STDIN_FILENO); //burda wcnin inputunu değiştiriyoruz
                 close(prev_fd);
             }
-            close(fd[0]);
+            close(fd[0]); // Read end kapatılmalı (sadece sol yazacak)
             dup2(fd[1], STDOUT_FILENO);
             close(fd[1]);
-            if ((init_builtin_ex(shell, cmd)) == -1)
+            // Eğer redirect fail ederse, çalışma duracak ama exit code 1
+            if (exec_redir(cmd) != 0)
+            {
+                exit(1);
+            }
+            ret = init_builtin_ex(shell, cmd);
+            if (ret == -1)
                 exec_external_no_fork(shell, cmd);
-            exit(1); //child process bitiyo
+            exit(ret);
 		}
 
 		if (prev_fd != -1)

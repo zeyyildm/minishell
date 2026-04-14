@@ -6,7 +6,7 @@
 /*   By: hakalkan <hakalkan@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/16 13:43:08 by hakalkan          #+#    #+#             */
-/*   Updated: 2026/04/06 19:34:46 by hakalkan         ###   ########.fr       */
+/*   Updated: 2026/04/14 14:25:16 by hakalkan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,7 +39,8 @@ void    handle_heredoc(t_shell *shell, t_redir *redir, int *fd)
             printf("warning: here-document delimited by end-of-file\n");
             break;
         }
-        if (ft_strncmp(line, delimiter,ft_strlen(delimiter)) == 0)
+        if (ft_strncmp(line, delimiter, ft_strlen(delimiter)) == 0
+            && ft_strlen(line) == ft_strlen(delimiter))
         {
             free(line);
             break;

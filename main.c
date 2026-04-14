@@ -6,7 +6,7 @@
 /*   By: hakalkan <hakalkan@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/10 16:31:21 by hakalkan          #+#    #+#             */
-/*   Updated: 2026/04/07 21:33:48 by hakalkan         ###   ########.fr       */
+/*   Updated: 2026/04/14 14:37:07 by hakalkan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -236,6 +236,7 @@ int main(int ac, char **av, char **envp)
     t_shell shell;
     shell.envp = envp;
     shell.env = NULL;
+    shell.last_exit_status = 0;
     init_env(&shell);
     shell.tokens = NULL;
     shell.commands = NULL;
@@ -251,7 +252,12 @@ int main(int ac, char **av, char **envp)
     {
         line = read_lines(); // =ls. readline bellek kullanır o yüzden free edilmeli
         if(line_check_quote(line))
-            exit(1);
+        {
+            ft_putstr_fd("minishell: unclosed quote\n", 2);
+            shell.last_exit_status = 2;
+            free(line);
+            continue;
+        }
         if(is_only_spaces(line))
         {
             free(line);
@@ -262,6 +268,9 @@ int main(int ac, char **av, char **envp)
         if(shell.tokens->type == TPIPE || tmp->type == TPIPE)
         {
             printf("zsh: parse error near `|'\n");
+            shell.last_exit_status = 2;
+            free_lists(&shell);
+            free(line);
             continue;
         }
         cmdHead = parser(shell.tokens, shell.commands);
@@ -280,6 +289,17 @@ int main(int ac, char **av, char **envp)
             //  sonra execution
             if (cmdHead->next)
             {
+                // Parent builtin pipe'dan gelmişse error
+                if (is_parent_builtin(cmdHead->argv[0]))
+                {
+                    ft_putstr_fd("minishell: ", 2);
+                    ft_putstr_fd(cmdHead->argv[0], 2);
+                    ft_putstr_fd(": command cannot be used with pipes\n", 2);
+                    shell.last_exit_status = 1;
+                    free_lists(&shell);
+                    free(line);
+                    continue;
+                }
                 execute_pipe(&shell, cmdHead, -1);
             }
             else
@@ -289,9 +309,15 @@ int main(int ac, char **av, char **envp)
                 {
                     int saved_stdin = dup(STDIN_FILENO);
                     int saved_stdout = dup(STDOUT_FILENO);
+                    int ret;
                     
                     if (exec_redir(cmdHead) == 0)
-                        init_builtin_ex(&shell, cmdHead);
+                    {
+                        ret = init_builtin_ex(&shell, cmdHead);
+                        shell.last_exit_status = ret;
+                    }
+                    else
+                        shell.last_exit_status = 1;
                     
                     dup2(saved_stdin, STDIN_FILENO);
                     dup2(saved_stdout, STDOUT_FILENO);
@@ -303,6 +329,8 @@ int main(int ac, char **av, char **envp)
                     int ret = init_builtin_ex(&shell, cmdHead);
                     if (ret == -1)
                         execute_basic(&shell, cmdHead);
+                    else
+                        shell.last_exit_status = ret;
                 }
             }
         }

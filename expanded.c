@@ -19,9 +19,29 @@ static char *get_env_value(t_shell *shell, char *key)
 static int expand_variable(t_shell *shell, char *arg ,char **result)
 {
     char    *key_name;
-    int    i;
+    int     i;
+    char    *value;
+    char    *tmp;
 
     i = 0;
+    if (arg[0] == '?')
+    {
+        value = ft_itoa(shell->last_exit_status);
+        if (!value)
+            return (0);
+        tmp = ft_strjoin(*result, value);
+        free(*result);
+        *result = tmp;
+        free(value);
+        return (2);
+    }
+    if (!arg[0] || (!(ft_isalnum(arg[0]) || arg[0] == '_')))
+    {
+        tmp = ft_strjoin(*result, "$\0");
+        free(*result);
+        *result = tmp;
+        return (1);
+    }
     while (arg[i] && (ft_isalnum(arg[i]) || arg[i] == '_'))
     {
         i++;
@@ -29,10 +49,12 @@ static int expand_variable(t_shell *shell, char *arg ,char **result)
     key_name = ft_substr(arg, 0, i);
     if(key_name)
     {
-        char *value = get_env_value(shell, key_name);
+        value = get_env_value(shell, key_name);
         if (value)
         {
-            *result = ft_strjoin(*result, value);
+            tmp = ft_strjoin(*result, value);
+            free(*result);
+            *result = tmp;
         }
         free(key_name);
         return i + 1;
@@ -110,7 +132,7 @@ char *for_quotes(char *s)
     k = 0;
     i = 0;
     j = 0;
-    line = malloc(ft_strlen(s));
+    line = malloc(ft_strlen(s) + 1);
     if(!line)
         return (NULL);
     while(s[i])
@@ -135,17 +157,60 @@ char *for_quotes(char *s)
 void expanded(t_shell *shell)
 {
     int i;
+    int j;
+    char *old;
+    char **new_argv;
+    int count;
 
     t_command *tmp;
     tmp = shell->commands;
     while (tmp)
     {
+        // First pass: expand all arguments
         i = 0;
         while (tmp->argv[i])
         {
+            old = tmp->argv[i];
             tmp->argv[i] = expand_arg(shell, tmp->argv[i]);
+            free(old);
             i++;
         }
+        
+        // Second pass: remove empty strings and rebuild argv
+        count = 0;
+        i = 0;
+        while (tmp->argv[i])
+        {
+            if (tmp->argv[i][0] != '\0')
+                count++;
+            i++;
+        }
+        
+        // If any empty strings, rebuild argv without them
+        if (count < i)
+        {
+            new_argv = malloc(sizeof(char *) * (count + 1));
+            if (new_argv)
+            {
+                j = 0;
+                i = 0;
+                while (tmp->argv[i])
+                {
+                    if (tmp->argv[i][0] != '\0')
+                    {
+                        new_argv[j] = tmp->argv[i];
+                        j++;
+                    }
+                    else
+                        free(tmp->argv[i]);
+                    i++;
+                }
+                new_argv[j] = NULL;
+                free(tmp->argv);
+                tmp->argv = new_argv;
+            }
+        }
+        
         tmp = tmp->next;
     }
 }

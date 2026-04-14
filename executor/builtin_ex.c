@@ -1,5 +1,43 @@
 #include "../minishell.h"
 
+static int  is_valid_identifier(const char *s)
+{
+    int i;
+
+    if (!s || !s[0])
+        return (0);
+    if (!(ft_isalpha(s[0]) || s[0] == '_'))
+        return (0);
+    i = 1;
+    while (s[i])
+    {
+        if (!(ft_isalnum(s[i]) || s[i] == '_'))
+            return (0);
+        i++;
+    }
+    return (1);
+}
+
+static int  is_valid_number(const char *s)
+{
+    int i;
+
+    if (!s || !s[0])
+        return (0);
+    i = 0;
+    if (s[i] == '+' || s[i] == '-')
+        i++;
+    if (!s[i])
+        return (0);
+    while (s[i])
+    {
+        if (!ft_isdigit(s[i]))
+            return (0);
+        i++;
+    }
+    return (1);
+}
+
 
 int is_cmd(char *name, char *cmd)
 {
@@ -48,7 +86,8 @@ int built_echo(t_command *cmd)
     pid_t pid;
     int status;
     int i;
-    int flag;
+    int newline;
+    int j;
 
     pid = fork();
     if (pid < 0)
@@ -62,11 +101,16 @@ int built_echo(t_command *cmd)
             exit(1);
         
         i = 1;
-        flag = 1;
-        if(cmd->argv[i] && is_cmd(cmd->argv[1], "-n"))
+        newline = 1;
+        while (cmd->argv[i] && cmd->argv[i][0] == '-' && cmd->argv[i][1] == 'n')
         {
-            flag = 0;
-            i = 2;
+            j = 1;
+            while (cmd->argv[i][j] == 'n')
+                j++;
+            if (cmd->argv[i][j] != '\0')
+                break;
+            newline = 0;
+            i++;
         }
         while(cmd->argv[i])
         {
@@ -75,7 +119,7 @@ int built_echo(t_command *cmd)
                 printf(" ");
             i++;
         }
-        if(flag == 1)
+        if(newline == 1)
             printf("\n");
         exit(0);
     }
@@ -116,6 +160,12 @@ int	built_cd(t_shell *shell,t_command *cmd) //cd - ncekine dizine döner
     char	*old_pwd;
     char	*new_pwd;
 	
+    if (cmd->argv[1] && cmd->argv[2])
+    {
+        ft_putstr_fd("minishell: cd: too many arguments\n", 2);
+        return (1);
+    }
+
     if (!cmd->argv[1])
        path_target = get_env_values(shell->env, "HOME");
     else if(is_cmd(cmd->argv[1], "-"))
@@ -124,12 +174,12 @@ int	built_cd(t_shell *shell,t_command *cmd) //cd - ncekine dizine döner
         path_target = cmd->argv[1];
     if (!path_target)
     {
-        perror("cd home bulma hatasiii");
+        ft_putstr_fd("minishell: cd: HOME not set\n", 2);
         return (1);
     }
     if(chdir(path_target) == -1)
     {
-        perror("cd target bulma hatasiii");
+        perror("minishell: cd");
         return (1);
     }
     old_pwd = get_env_values(shell->env, "PWD");
@@ -185,11 +235,13 @@ void add_env_node(t_shell *shell, char *key, char *value)
     t_env *tmp;
 
     new=malloc(sizeof(t_env));
+    if (!new)
+        return ;
     new->key = ft_strdup(key);
     if(value)
         new->value = ft_strdup(value);
     else
-        new->value = ft_strdup("''");
+        new->value = NULL;
     new->next = NULL;
 
     if(!shell->env)
@@ -217,7 +269,7 @@ t_env *env_sort(t_env *env)
         j = i->next;
         while (j)
         {
-            if (ft_strncmp(i->key, j->key,ft_strlen(i->key)) > 0)
+            if (ft_strncmp(i->key, j->key, ft_strlen(i->key) + ft_strlen(j->key) + 1) > 0)
             {
                 // swap key
                 tmp_key = i->key;
@@ -240,8 +292,12 @@ int built_export(t_shell *shell, t_command *cmd)
 	int		i;
 	char	*equal;
 	t_env	*tmp;
+    char	*key;
+    char	*value;
+    int		status;
 
 	i = 1;
+    status = 0;
 	if(!cmd->argv[1])
 	{
 		// Argumansiz export -> env gibi calis (parent'tayiz)
@@ -261,18 +317,36 @@ int built_export(t_shell *shell, t_command *cmd)
 		equal = ft_strchr(cmd->argv[i], '=');
 		if(equal == NULL)
 		{
-			char *key = ft_strdup(cmd->argv[i]);
-			if(get_env_values(shell->env, key) == NULL)
-				add_env_node(shell, key, NULL);
-			free(key);
+            if (!is_valid_identifier(cmd->argv[i]))
+            {
+                ft_putstr_fd("minishell: export: `", 2);
+                ft_putstr_fd(cmd->argv[i], 2);
+                ft_putstr_fd("': not a valid identifier\n", 2);
+                status = 1;
+                i++;
+                continue;
+            }
+            if(get_env_values(shell->env, cmd->argv[i]) == NULL)
+                add_env_node(shell, cmd->argv[i], NULL);
 			i++;
 			continue;
 		}
 
 		else
 		{
-			char *key = ft_substr(cmd->argv[i], 0, equal - cmd->argv[i]);
-			char *value = ft_strdup(equal + 1);
+            key = ft_substr(cmd->argv[i], 0, equal - cmd->argv[i]);
+            value = ft_strdup(equal + 1);
+            if (!is_valid_identifier(key))
+            {
+                ft_putstr_fd("minishell: export: `", 2);
+                ft_putstr_fd(cmd->argv[i], 2);
+                ft_putstr_fd("': not a valid identifier\n", 2);
+                free(key);
+                free(value);
+                status = 1;
+                i++;
+                continue;
+            }
 
 			if(get_env_values(shell->env, key))
 				update_env(shell->env, key, value);
@@ -283,7 +357,7 @@ int built_export(t_shell *shell, t_command *cmd)
 			i++;
 		}
 	}
-	return (0);
+    return (status);
 }
 
 int built_unset(t_shell *shell, t_command *cmd)
@@ -359,6 +433,19 @@ int built_exit(t_command *cmd)
     int exit_code;
 
     exit_code = 0;
+    if (cmd->argv[1] && !is_valid_number(cmd->argv[1]))
+    {
+        ft_putstr_fd("exit\n", 2);
+        ft_putstr_fd("minishell: exit: ", 2);
+        ft_putstr_fd(cmd->argv[1], 2);
+        ft_putstr_fd(": numeric argument required\n", 2);
+        exit(2);
+    }
+    if (cmd->argv[1] && cmd->argv[2])
+    {
+        ft_putstr_fd("minishell: exit: too many arguments\n", 2);
+        return (1);
+    }
     if(cmd->argv[1]) //exit 42
         exit_code = ft_atoi(cmd->argv[1]);
     printf("exit\n");
