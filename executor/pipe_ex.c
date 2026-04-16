@@ -1,4 +1,5 @@
 #include "../minishell.h"
+#include <errno.h>
 
 
 void exec_external_no_fork(t_shell *shell, t_command *cmd)
@@ -16,7 +17,10 @@ void exec_external_no_fork(t_shell *shell, t_command *cmd)
         exit(1);
 
     execve(full_path, cmd->argv, shell->envp);
-    perror("execve");
+    free(full_path);
+    perror(cmd->argv[0]);
+    if (errno == ENOENT)
+        exit(127);
     exit(126);
 }
 // ls | wc 
@@ -41,7 +45,8 @@ void execute_pipe(t_shell *shell, t_command *cmd, int prev_fd) //bu if else olar
             {
                 dup2(prev_fd, STDIN_FILENO); //burda wcnin inputunu değiştiriyoruz
                 close(prev_fd);
-            }            // Eğer redirect fail ederse, çalışma duracak ama exit code 1            if (exec_redir(cmd) != 0)
+            }            // Eğer redirect fail ederse, çalışma duracak ama exit code 1            
+            if (exec_redir(cmd) != 0)
             {
                 exit(1);
             }
@@ -74,6 +79,7 @@ void execute_pipe(t_shell *shell, t_command *cmd, int prev_fd) //bu if else olar
 			perror("fork hatasi 2");
 			return ;
 		}
+
 		if(pid == 0) //bu child processtir demek
 		{
 			if (prev_fd != -1) //bu tek komutlu değil bir çoklu pipe ın son komutu demek
@@ -99,11 +105,9 @@ void execute_pipe(t_shell *shell, t_command *cmd, int prev_fd) //bu if else olar
             close(prev_fd);
         close(fd[1]);
         execute_pipe(shell, cmd->next, fd[0]);
+        close(fd[0]);
         waitpid(pid, &status, 0);
-        if (WIFEXITED(status))
-            shell->last_exit_status = WEXITSTATUS(status);
-        else
-            shell->last_exit_status = 1;
+        // Don't override exit status - it's already set by the last command in the pipe
 	}
 
 }

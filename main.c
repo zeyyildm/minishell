@@ -6,7 +6,7 @@
 /*   By: hakalkan <hakalkan@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/10 16:31:21 by hakalkan          #+#    #+#             */
-/*   Updated: 2026/04/14 14:37:07 by hakalkan         ###   ########.fr       */
+/*   Updated: 2026/04/16 18:06:36 by hakalkan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -285,7 +285,6 @@ int main(int ac, char **av, char **envp)
                 if (exec_heredoc(&shell, cmdHead) != 0)
                     return 1;
             }
-
             //  sonra execution
             if (cmdHead->next)
             {
@@ -313,7 +312,7 @@ int main(int ac, char **av, char **envp)
                     
                     if (exec_redir(cmdHead) == 0)
                     {
-                        ret = init_builtin_ex(&shell, cmdHead);
+                        ret = init_builtin_ex(&shell, cmdHead);         
                         shell.last_exit_status = ret;
                     }
                     else
@@ -321,7 +320,7 @@ int main(int ac, char **av, char **envp)
                     
                     dup2(saved_stdin, STDIN_FILENO);
                     dup2(saved_stdout, STDOUT_FILENO);
-                    close(saved_stdin);
+                    close(saved_stdin); 
                     close(saved_stdout);
                 }
                 else

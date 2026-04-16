@@ -6,7 +6,7 @@
 /*   By: hakalkan <hakalkan@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/19 04:15:59 by hakalkan          #+#    #+#             */
-/*   Updated: 2026/04/07 18:21:28 by hakalkan         ###   ########.fr       */
+/*   Updated: 2026/04/16 17:53:13 by hakalkan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -96,6 +96,8 @@ char	*for_quotes(char *s);
 int		exec_redir(t_command *cmd);
 char	*expand_arg(t_shell *shell, char *arg);
 char	*find_ex_path(t_shell *shell, char *cmd_name);
+void exec_external_no_fork(t_shell *shell, t_command *cmd);
+
 
 
 
