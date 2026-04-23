@@ -10,18 +10,47 @@ void exec_external_no_fork(t_shell *shell, t_command *cmd)
     if (!full_path)
     {
         printf("command not found\n");
+        free_lists(shell);
+        free_env(shell->env);
         exit(127);
     }
 
     if (exec_redir(cmd))
+    {
+        free(full_path);
+        free_lists(shell);
+        free_env(shell->env);
         exit(1);
+    }
 
     execve(full_path, cmd->argv, shell->envp);
+    int err = errno;
+    struct stat path_stat;
+
+    stat(cmd->argv[0], &path_stat);
+    if (err == EACCES && S_ISDIR(path_stat.st_mode))
+    {
+        ft_putstr_fd("minishell: ", 2);
+        ft_putstr_fd(cmd->argv[0], 2);
+        ft_putstr_fd(": Is a directory\n", 2);
+        free(full_path);
+        free_lists(shell);
+        free_env(shell->env);
+        exit(126);
+    }
+    else
+    {
+        errno = err; // Restore errno for perror
+        perror(cmd->argv[0]);
+    }
     free(full_path);
-    perror(cmd->argv[0]);
-    if (errno == ENOENT)
+    free_lists(shell);
+    free_env(shell->env);
+    if (err == ENOENT)
         exit(127);
-    exit(126);
+    if (err == EACCES)
+        exit(126);
+    exit(127);
 }
 // ls | wc 
 void execute_pipe(t_shell *shell, t_command *cmd, int prev_fd) //bu if else olarak iki fonska bölünecek
@@ -50,11 +79,15 @@ void execute_pipe(t_shell *shell, t_command *cmd, int prev_fd) //bu if else olar
             }            // Eğer redirect fail ederse, çalışma duracak ama exit code 1            
             if (exec_redir(cmd) != 0)
             {
+                free_lists(shell);
+                free_env(shell->env);
                 exit(1);
             }
             ret = init_builtin_ex(shell, cmd);
             if (ret == -1)
                 exec_external_no_fork(shell, cmd);
+            free_lists(shell);
+            free_env(shell->env);
             exit(ret);
 		}
 		if (prev_fd != -1) //bu koşul parenttaki fd kapansin die
@@ -97,11 +130,15 @@ void execute_pipe(t_shell *shell, t_command *cmd, int prev_fd) //bu if else olar
             // Eğer redirect fail ederse, çalışma duracak ama exit code 1
             if (exec_redir(cmd) != 0)
             {
+                free_lists(shell);
+                free_env(shell->env);
                 exit(1);
             }
             ret = init_builtin_ex(shell, cmd);
             if (ret == -1)
                 exec_external_no_fork(shell, cmd);
+            free_lists(shell);
+            free_env(shell->env);
             exit(ret);
 		}
 
@@ -110,7 +147,11 @@ void execute_pipe(t_shell *shell, t_command *cmd, int prev_fd) //bu if else olar
         close(fd[1]);
         execute_pipe(shell, cmd->next, fd[0]);
         close(fd[0]);
-        waitpid(pid, &status, 0);
+        while(waitpid(pid, &status, 0) == -1)
+        {
+            if(errno != EINTR)
+                break;
+        }
         // Don't override exit status - it's already set by the last command in the pipe
 	}
 

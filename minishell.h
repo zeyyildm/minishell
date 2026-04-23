@@ -23,6 +23,8 @@
 #include <readline/readline.h>
 #include <signal.h>
 #include <readline/history.h>
+#include <errno.h>
+#include <sys/stat.h>
 
 typedef enum e_token_type //tokenizerın etiketleri için
 {
@@ -81,16 +83,18 @@ void	print_commands(t_command *cmd);
 void	print_tokens(t_token *head);
 void	print_env_debug(t_env *env);
 void	get_env(t_shell *shell);
+void	free_lists(t_shell *shell);
+void	free_env(t_env *env);
 int		init_builtin_ex(t_shell *shell, t_command *cmd);
 int		is_parent_builtin(char *cmd);
-int		built_echo(t_command *cmd);
+int		built_echo(t_shell *shell, t_command *cmd);
 int		built_cd(t_shell *shell,t_command *cmd);
-int		built_pwd(t_command *cmd);
+int		built_pwd(t_shell *shell, t_command *cmd);
 void	add_env_node(t_shell *shell, char *key, char *value);
 int		built_export(t_shell *shell, t_command *cmd);
 int		built_unset(t_shell *shell, t_command *cmd);
 int		built_env(t_shell *shell, t_command *cmd);
-int		built_exit(t_command *cmd);
+int		built_exit(t_shell *shell, t_command *cmd);
 void	execute_pipe(t_shell *shell, t_command *cmd, int prev_fd);
 void	execute_basic(t_shell *shell, t_command *cmd);
 int		exec_heredoc(t_shell *shell, t_command *cmd);

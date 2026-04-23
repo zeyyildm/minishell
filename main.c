@@ -73,9 +73,9 @@ char *read_lines(void)
 	char	*line;
 
 	line = readline("minishell$ ");
-	if (!line)
+	if (!line )
 		return (NULL);
-	if (*line)
+	if (*line && !is_only_spaces(line))
 		add_history(line);
 	return (line);
 }
@@ -221,7 +221,9 @@ void	free_lists(t_shell *shell)
 		return ;
 
 	free_tokens(shell->tokens);
+	shell->tokens = NULL;
 	free_commands(shell->commands);
+	shell->commands = NULL;
 	// free_env(shell->env);
 	// free_envp(shell->envp);
 }

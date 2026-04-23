@@ -65,11 +65,11 @@ int init_builtin_ex(t_shell *shell, t_command *cmd)
     if (!name)
         return (0);
     if (is_cmd(name, "echo"))
-        return (built_echo(cmd));
+        return (built_echo(shell, cmd));
     else if (is_cmd(name, "cd"))
         return (built_cd(shell, cmd));
     else if (is_cmd(name, "pwd"))
-        return (built_pwd(cmd));
+        return (built_pwd(shell, cmd));
     else if (is_cmd(name, "export"))
         return (built_export(shell, cmd));
     else if (is_cmd(name, "unset"))
@@ -77,14 +77,14 @@ int init_builtin_ex(t_shell *shell, t_command *cmd)
     else if (is_cmd(name, "env"))
         return (built_env(shell, cmd));
     else if (is_cmd(name, "exit"))
-        return (built_exit(cmd));
+        return (built_exit(shell, cmd));
     return (-1);
 }
 
-int built_echo(t_command *cmd)
+int built_echo(t_shell *shell, t_command *cmd)
 {
     pid_t pid;
-    int status;
+    int status = 0;
     int i;
     int newline;
     int j;
@@ -98,7 +98,11 @@ int built_echo(t_command *cmd)
     if (pid == 0)
     {
         if (exec_redir(cmd) != 0)
+        {
+            free_lists(shell); // Changed to free lists
+            free_env(shell->env); // Changed to free env
             exit(1);
+        }
         
         i = 1;
         newline = 1;
@@ -121,9 +125,15 @@ int built_echo(t_command *cmd)
         }
         if(newline == 1)
             printf("\n");
+        free_lists(shell); // Changed to free lists
+        free_env(shell->env); // Changed to free env
         exit(0);
     }
-    waitpid(pid, &status, 0);
+    while(waitpid(pid, &status, 0) == -1)
+    {
+        if(errno != EINTR)
+            break;
+    }
     if (WIFEXITED(status))
         return (WEXITSTATUS(status));
     return (1);
@@ -197,10 +207,10 @@ int	built_cd(t_shell *shell,t_command *cmd) //cd - ncekine dizine döner
     
 }
 
-int built_pwd(t_command *cmd)
+int built_pwd(t_shell *shell, t_command *cmd)
 {
     pid_t pid;
-    int status;
+    int status = 0;
     char *path;
 
     pid = fork();
@@ -218,13 +228,21 @@ int built_pwd(t_command *cmd)
         if(!path)
         {
             perror("pwd error");
+            free_lists(shell); // Changed to free lists
+            free_env(shell->env); // Changed to free env
             exit(1);
         }
         printf("%s\n", path);
         free(path);
+        free_lists(shell); // Changed to free lists
+        free_env(shell->env); // Changed to free env
         exit(0);
     }
-    waitpid(pid, &status, 0);
+    while(waitpid(pid, &status, 0) == -1)
+    {
+        if(errno != EINTR)
+            break;
+    }
     if (WIFEXITED(status))
         return (WEXITSTATUS(status));
     return (1);
@@ -408,7 +426,11 @@ int built_env(t_shell *shell, t_command *cmd)
     if (pid == 0)
     {
         if (exec_redir(cmd) != 0)
+        {
+            free_lists(shell);
+            free_env(shell->env);
             exit(1);
+        }
         
         tmp = shell->env;
         while(tmp)
@@ -417,15 +439,21 @@ int built_env(t_shell *shell, t_command *cmd)
                 printf("%s=%s\n", tmp->key, tmp->value);
             tmp = tmp->next;
         }
+        free_lists(shell);
+        free_env(shell->env);
         exit(0);
     }
-    waitpid(pid, &status, 0);
+    while(waitpid(pid, &status, 0) == -1)
+    {
+        if(errno != EINTR)
+            break;
+    }
     if (WIFEXITED(status))
         return (WEXITSTATUS(status));
     return (1);
 }
 
-int built_exit(t_command *cmd)
+int built_exit(t_shell *shell, t_command *cmd)
 {
     //exit-code: programın kapattığında os e döndürdüğü 0-255 arasındaki sayı
     //0 = başarılı diğerleri hata
@@ -449,5 +477,9 @@ int built_exit(t_command *cmd)
     if(cmd->argv[1]) //exit 42
         exit_code = ft_atoi(cmd->argv[1]);
     printf("exit\n");
+    rl_clear_history();
+    free_lists(shell);
+    free_env(shell->env);
+    // free_envp(shell->envp); // If allocated
     exit(exit_code); //burada process zorlanır, tüm kaynaklar temizlenir, fdler kapanır, parenta sinyal gider
 }

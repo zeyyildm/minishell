@@ -132,6 +132,8 @@ void execute_basic(t_shell *shell, t_command *cmd)
     int status; //childın exit kodunu almak icin
     char *full_path;
 
+    status = 0;
+
     full_path = find_ex_path(shell, cmd->argv[0]);
     if(!full_path)
     {
@@ -162,15 +164,41 @@ void execute_basic(t_shell *shell, t_command *cmd)
         if (!child_envp)
             exit(1);
         execve(full_path, cmd->argv, child_envp);
-        perror(cmd->argv[0]);
+        int err = errno;
+        struct stat path_stat;
+        
+        stat(cmd->argv[0], &path_stat);
+        if (err == EACCES && S_ISDIR(path_stat.st_mode))
+        {
+            ft_putstr_fd("minishell: ", 2);
+            ft_putstr_fd(cmd->argv[0], 2);
+            ft_putstr_fd(": Is a directory\n", 2);
+            free_tmp_envp(child_envp);
+            free(full_path);
+            free_lists(shell);
+            free_env(shell->env);
+            exit(126);
+        }
+        else
+        {
+            errno = err; // Restore errno for perror
+            perror(cmd->argv[0]);
+        }
         free_tmp_envp(child_envp);
-        if (errno == ENOENT)
+        free(full_path);
+        free_lists(shell);
+        free_env(shell->env);
+        if (err == ENOENT)
             exit(127);
         exit(126);
     }
     else
     {
-        waitpid(pid, &status, 0);
+        while (waitpid(pid, &status, 0) == -1)
+        {
+            if (errno != EINTR)
+                break;
+        }
 
         if (WIFSIGNALED(status))
         {
