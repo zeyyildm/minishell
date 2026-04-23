@@ -6,19 +6,23 @@
 /*   By: hakalkan <hakalkan@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/19 04:15:59 by hakalkan          #+#    #+#             */
-/*   Updated: 2026/04/16 17:53:13 by hakalkan         ###   ########.fr       */
+/*   Updated: 2026/04/22 21:07:27 by hakalkan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef MINISHELL_H
 # define MINISHELL_H
+#define _POSIX_C_SOURCE 200809L
+
 # include <unistd.h>
 # include <stdlib.h>
 # include <stdio.h>
 # include <fcntl.h>
 # include <sys/wait.h>
 # include "libft/libft.h"
-
+#include <readline/readline.h>
+#include <signal.h>
+#include <readline/history.h>
 
 typedef enum e_token_type //tokenizerın etiketleri için
 {

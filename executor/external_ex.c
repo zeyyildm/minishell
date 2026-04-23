@@ -150,9 +150,10 @@ void execute_basic(t_shell *shell, t_command *cmd)
         shell->last_exit_status = 1;
         return ;
     }
-
     if(pid == 0)
     {
+        signal(SIGINT, SIG_DFL);
+        signal(SIGQUIT, SIG_DFL);
         char **child_envp;
 
         if(exec_redir(cmd))
@@ -171,6 +172,16 @@ void execute_basic(t_shell *shell, t_command *cmd)
     {
         waitpid(pid, &status, 0);
 
+        if (WIFSIGNALED(status))
+        {
+            if (WTERMSIG(status) == SIGINT)
+                shell->last_exit_status = 130;
+            else if (WTERMSIG(status) == SIGQUIT)
+            {
+                write(1, "Quit (core dumped)\n", 20);
+                shell->last_exit_status = 131;
+            }
+        }
         if(WIFEXITED(status)) //child normal exit yaptı mı
             shell->last_exit_status = WEXITSTATUS(status); //childın exit kodunu al
         else

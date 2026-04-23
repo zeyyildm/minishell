@@ -41,6 +41,8 @@ void execute_pipe(t_shell *shell, t_command *cmd, int prev_fd) //bu if else olar
 		}
 		if(pid == 0) //bu child processtir demek
 		{
+            signal(SIGINT, SIG_DFL);
+            signal(SIGQUIT, SIG_DFL);
 			if (prev_fd != -1) //bu tek komutlu değil bir çoklu pipe ın son komutu demek
             {
                 dup2(prev_fd, STDIN_FILENO); //burda wcnin inputunu değiştiriyoruz
@@ -82,6 +84,8 @@ void execute_pipe(t_shell *shell, t_command *cmd, int prev_fd) //bu if else olar
 
 		if(pid == 0) //bu child processtir demek
 		{
+            signal(SIGINT, SIG_DFL);
+            signal(SIGQUIT, SIG_DFL);
 			if (prev_fd != -1) //bu tek komutlu değil bir çoklu pipe ın son komutu demek
             {
                 dup2(prev_fd, STDIN_FILENO); //burda wcnin inputunu değiştiriyoruz

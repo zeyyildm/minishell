@@ -1,0 +1,25 @@
+{
+    readline_leak
+    Memcheck:Leak
+    match-leak-kinds: reachable
+    ...
+    fun:malloc
+    ...
+    obj:*readline*
+}
+
+{
+    readline_leak2
+    Memcheck:Leak
+    match-leak-kinds: reachable
+    ...
+    obj:*libreadline.so*
+}
+
+{
+    readline_leak3
+    Memcheck:Leak
+    match-leak-kinds: reachable
+    ...
+    obj:*libhistory.so*
+}

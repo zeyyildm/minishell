@@ -6,7 +6,7 @@
 /*   By: hakalkan <hakalkan@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/16 13:43:08 by hakalkan          #+#    #+#             */
-/*   Updated: 2026/04/14 14:25:16 by hakalkan         ###   ########.fr       */
+/*   Updated: 2026/04/22 20:50:53 by hakalkan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,6 +77,8 @@ int exec_heredoc(t_shell *shell, t_command *cmd)
 
             if (pid == 0)
             {
+                signal(SIGINT, SIG_DFL);
+                signal(SIGQUIT, SIG_DFL);
                 close(fd[0]);
                 handle_heredoc(shell, redir, fd);
                 close(fd[1]);

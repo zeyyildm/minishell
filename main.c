@@ -6,15 +6,39 @@
 /*   By: hakalkan <hakalkan@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/10 16:31:21 by hakalkan          #+#    #+#             */
-/*   Updated: 2026/04/16 18:06:36 by hakalkan         ###   ########.fr       */
+/*   Updated: 2026/04/22 21:20:43 by hakalkan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
-#include <readline/readline.h>
-#include <readline/history.h>
+
+
 
 //diyelim ki girdi ls
+volatile sig_atomic_t g_signal = 0;
+
+
+void sigint_handler(int sig)
+{
+    (void)sig;
+    g_signal = 1;
+    write(1, "\n", 1);
+
+    rl_on_new_line();
+    rl_replace_line("", 0);
+    rl_redisplay();
+}
+void init_signals(void)
+{
+    struct sigaction sa;
+
+    sa.sa_handler = sigint_handler;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = 0;
+
+    sigaction(SIGINT, &sa, NULL);
+    signal(SIGQUIT, SIG_IGN);
+}
 
 static int is_only_spaces(const char *s) //girilen satır boş mu veya sadece space mi
 {
@@ -200,8 +224,8 @@ void	free_lists(t_shell *shell)
 
 	free_tokens(shell->tokens);
 	free_commands(shell->commands);
-	//free_env(shell->env);
-	//free_envp(shell->envp);
+	// free_env(shell->env);
+	// free_envp(shell->envp);
 }
 int heredoc_search(t_command *cmd)
 {
@@ -238,6 +262,7 @@ int main(int ac, char **av, char **envp)
     shell.env = NULL;
     shell.last_exit_status = 0;
     init_env(&shell);
+    init_signals(); 
     shell.tokens = NULL;
     shell.commands = NULL;
     t_command *cmdHead;
