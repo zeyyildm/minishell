@@ -17,7 +17,6 @@
 //diyelim ki girdi ls
 volatile sig_atomic_t g_signal = 0;
 
-
 void sigint_handler(int sig)
 {
     (void)sig;
@@ -28,6 +27,7 @@ void sigint_handler(int sig)
     rl_replace_line("", 0);
     rl_redisplay();
 }
+
 void init_signals(void)
 {
     struct sigaction sa;
@@ -67,16 +67,14 @@ static int is_same(const char *a, const char *b) //iki string birebir aynı mı?
     return (a[i] == '\0' && b[i] == '\0');
 }
 */
-char *read_lines()
+
+char *read_lines(void)
 {
 	char	*line;
 
 	line = readline("minishell$ ");
 	if (!line)
-	{
-		write(1, "exit\n", 5);
-		exit(0);
-	}
+		return (NULL);
 	if (*line)
 		add_history(line);
 	return (line);
@@ -136,17 +134,17 @@ void init_env(t_shell *shell)
     shell->env = NULL;
     get_env(shell);
 }
-void	free_tokens(t_token *tokens)
+void free_tokens(t_token *tokens)
 {
-	t_token	*tmp;
+    t_token *tmp;
 
-	while (tokens)
-	{
-		tmp = tokens->next;
-		free(tokens->value);
-		free(tokens);
-		tokens = tmp;
-	}
+    while (tokens)
+    {
+        tmp = tokens->next;
+        free(tokens->value);
+        free(tokens);
+        tokens = tmp;
+    }
 }
 void	free_redirs(t_redir *redirs)
 {
@@ -276,6 +274,15 @@ int main(int ac, char **av, char **envp)
     while(1)
     {
         line = read_lines(); // =ls. readline bellek kullanır o yüzden free edilmeli
+        if (!line)
+        {
+            write(1, "exit\n", 5);
+            rl_clear_history();
+            free_lists(&shell);
+            free_env(shell.env);
+            // free_envp(shell.envp); // sadece malloc'ladıysan
+            exit(0);
+        }
         if(line_check_quote(line))
         {
             ft_putstr_fd("minishell: unclosed quote\n", 2);
@@ -298,7 +305,7 @@ int main(int ac, char **av, char **envp)
             free(line);
             continue;
         }
-        cmdHead = parser(shell.tokens, shell.commands);
+        cmdHead = parser(shell.tokens , shell.commands);
         shell.commands = cmdHead;
         if (cmdHead)
             expanded(&shell);

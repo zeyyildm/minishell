@@ -63,16 +63,21 @@ static int expand_variable(t_shell *shell, char *arg ,char **result)
 }
 
 
-static char *append_char(char *str,char c)
+static char *append_char(char *str, char c)
 {
-    char *new_str;
-    int size;
-    int i;
+    char    *new_str;
+    int     size;
+    int     i;
 
+    if (!str)
+        return (NULL);
     size = ft_strlen(str);
     new_str = malloc(size + 2);
     if (!new_str)
-        return NULL;
+    {
+        free(str);
+        return (NULL);
+    }
     i = 0;
     while (str[i])
     {
@@ -82,41 +87,52 @@ static char *append_char(char *str,char c)
     new_str[i] = c;
     new_str[i + 1] = '\0';
     free(str);
-    return new_str;
+    return (new_str);
 }
-
 char *expand_arg(t_shell *shell, char *arg)
 {
     char    *new_arg;
+    char    *tmp;
     int     i;
     char    state;
-    
+    int     step;
+
     i = 0;
     state = 0;
     new_arg = ft_strdup("");
+    if (!new_arg)
+        return (NULL);
     while (arg[i])
     {
-        if(arg[i] == '\'' && state != '"')
+        if (arg[i] == '\'' && state != '"')
         {
-            if(state == '\'')
+            if (state == '\'')
                 state = 0;
             else
                 state = '\'';
         }
-        else if(arg[i] == '"' && state != '\'')
+        else if (arg[i] == '"' && state != '\'')
         {
-            if(state == '"')
+            if (state == '"')
                 state = 0;
             else
                 state = '"';
         }
         else if (arg[i] == '$' && state != '\'')
         {
-            i += expand_variable(shell, arg  + i + 1,&new_arg);
+            step = expand_variable(shell, arg + i + 1, &new_arg);
+            if (step == 0)
+                return (NULL);
+            i += step;
             continue;
         }
         else
-            new_arg = append_char(new_arg, arg[i]);
+        {
+            tmp = append_char(new_arg, arg[i]);
+            if (!tmp)
+                return (NULL);
+            new_arg = tmp;
+        }
         i++;
     }
     return (new_arg);
