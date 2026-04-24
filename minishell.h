@@ -79,9 +79,6 @@ typedef struct s_shell //shell state. komutlar arası kaybolmaması gereken bilg
 
 t_token *tokenizer(char *s);
 t_command *parser(t_token *t, t_command *cmd);
-void	print_commands(t_command *cmd);
-void	print_tokens(t_token *head);
-void	print_env_debug(t_env *env);
 void	get_env(t_shell *shell);
 void	free_lists(t_shell *shell);
 void	free_env(t_env *env);
@@ -105,13 +102,6 @@ int		exec_redir(t_command *cmd);
 char	*expand_arg(t_shell *shell, char *arg);
 char	*find_ex_path(t_shell *shell, char *cmd_name);
 void exec_external_no_fork(t_shell *shell, t_command *cmd);
-
-
-
-
-
-
-
 
 
 #endif

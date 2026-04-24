@@ -254,6 +254,55 @@ t_token *last_token(t_token **token)
     
     return tmp;
 }
+int	is_redir(int type)
+{
+	return (type == T_REDIR_IN || type == T_REDIR_OUT
+		|| type == T_REDIR_APPEND || type == T_HEREDOC);
+}
+
+int	syntax_check(t_token *t)
+{
+	t_token	*tmp;
+
+	if (!t)
+		return (0);
+
+	if (t->type == TPIPE)
+	{
+		ft_putstr_fd("minishell: syntax error near unexpected token `|'\n", 2);
+		return (1);
+	}
+
+	tmp = t;
+	while (tmp)
+	{
+		if (tmp->type == TPIPE)
+		{
+			if (!tmp->next || tmp->next->type == TPIPE)
+			{
+				ft_putstr_fd("minishell: syntax error near unexpected token `|'\n", 2);
+				return (1);
+			}
+		}
+		else if (is_redir(tmp->type))
+		{
+			if (!tmp->next)
+			{
+				ft_putstr_fd("minishell: syntax error near unexpected token `newline'\n", 2);
+				return (1);
+			}
+			if (tmp->next->type != TWORD)
+			{
+				ft_putstr_fd("minishell: syntax error near unexpected token `", 2);
+				ft_putstr_fd(tmp->next->value, 2);
+				ft_putstr_fd("'\n", 2);
+				return (1);
+			}
+		}
+		tmp = tmp->next;
+	}
+	return (0);
+}
 int main(int ac, char **av, char **envp)
 {
     char *line;
@@ -267,7 +316,6 @@ int main(int ac, char **av, char **envp)
     shell.commands = NULL;
     t_command *cmdHead;
     cmdHead = NULL;
-    t_token *tmp;
 
     (void)ac;
     (void)av;
@@ -298,14 +346,12 @@ int main(int ac, char **av, char **envp)
             continue;
         }
         shell.tokens = tokenizer(line);
-        tmp = last_token(&shell.tokens);
-        if(shell.tokens->type == TPIPE || tmp->type == TPIPE)
+        if (syntax_check(shell.tokens))
         {
-            printf("zsh: parse error near `|'\n");
             shell.last_exit_status = 2;
             free_lists(&shell);
             free(line);
-            continue;
+            continue ;
         }
         cmdHead = parser(shell.tokens , shell.commands);
         shell.commands = cmdHead;

@@ -66,3 +66,14 @@ sdflksjdf
 sdflkjsdf
 
 hattalı  
+
+
+başta pipe ve devamında bir kelime girildiğinde leak çıkıyor sytax hattası 
+echo |  | leak var 
+| | | leak var
+|||||| leak var 
+echo hello world leak var 
+37
+52 
+60 
+68
