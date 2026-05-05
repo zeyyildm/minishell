@@ -432,7 +432,7 @@ int built_env(t_shell *shell, t_command *cmd)
             exit(1);
         }
         
-        tmp = shell->env;
+        tmp = env_sort(shell->env);
         while(tmp)
         {
             if(tmp->value)

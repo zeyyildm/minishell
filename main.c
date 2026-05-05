@@ -229,16 +229,22 @@ void	free_lists(t_shell *shell)
 }
 int heredoc_search(t_command *cmd)
 {
+    t_command *cmd_tmp;
     t_redir *tmp;
 
-    tmp = cmd->redirs;
-    while (tmp)
+    cmd_tmp = cmd;
+    while (cmd_tmp)
     {
-        if (tmp->type == T_HEREDOC)
+        tmp = cmd_tmp->redirs;
+        while (tmp)
         {
-            return (1);
+            if (tmp->type == T_HEREDOC)
+            {
+                return (1);
+            }
+            tmp = tmp->next;
         }
-        tmp = tmp->next;
+        cmd_tmp = cmd_tmp->next;
     }
     return (0);
 }
@@ -359,6 +365,18 @@ int main(int ac, char **av, char **envp)
             expanded(&shell);
         if (cmdHead)
         {
+            // Handle redirect-only commands (e.g., "> file" or "< file")
+            if (cmdHead->argv[0] == NULL && cmdHead->redirs && !cmdHead->next)
+            {
+                if (exec_redir(cmdHead) == 0)
+                    shell.last_exit_status = 0;
+                else
+                    shell.last_exit_status = 1;
+                free_lists(&shell);
+                free(line);
+                continue;
+            }
+
             // HER ZAMAN önce heredoc
             if (heredoc_search(cmdHead))
             {
@@ -369,7 +387,7 @@ int main(int ac, char **av, char **envp)
             if (cmdHead->next)
             {
                 // Parent builtin pipe'dan gelmişse error
-                if (is_parent_builtin(cmdHead->argv[0]))
+                if (cmdHead->argv[0] && is_parent_builtin(cmdHead->argv[0]))
                 {
                     ft_putstr_fd("minishell: ", 2);
                     ft_putstr_fd(cmdHead->argv[0], 2);
@@ -384,7 +402,7 @@ int main(int ac, char **av, char **envp)
             else
             {
                 // Parent builtin ise (cd, export, unset, exit)
-                if (is_parent_builtin(cmdHead->argv[0]))
+                if (cmdHead->argv[0] && is_parent_builtin(cmdHead->argv[0]))
                 {
                     int saved_stdin = dup(STDIN_FILENO);
                     int saved_stdout = dup(STDOUT_FILENO);

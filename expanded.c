@@ -96,12 +96,30 @@ char *expand_arg(t_shell *shell, char *arg)
     int     i;
     char    state;
     int     step;
+    char    *home;
 
     i = 0;
     state = 0;
     new_arg = ft_strdup("");
     if (!new_arg)
         return (NULL);
+    
+    // Handle tilde expansion at the start of unquoted argument
+    if (arg[0] == '~')
+    {
+        home = get_env_value(shell, "HOME");
+        if (home)
+        {
+            tmp = ft_strjoin(home, arg + 1);
+            free(new_arg);
+            new_arg = tmp;
+            if (!new_arg)
+                return (NULL);
+            return (new_arg);  // Return early since tilde replacement is complete
+        }
+        // If HOME not set, continue normally and let the tilde pass through
+    }
+    
     while (arg[i])
     {
         if (arg[i] == '\'' && state != '"')
