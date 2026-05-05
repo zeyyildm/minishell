@@ -1,0 +1,4 @@
+minishell$ exit
+minishell$ cat OME
+minishell$ /bin/rm -f OME
+minishell$ exit
