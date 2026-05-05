@@ -1,3 +1,0 @@
-minishell$ cat $USER
-minishell$ /bin/rm -f $USER
-minishell$ exit

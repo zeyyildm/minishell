@@ -6,7 +6,7 @@
 /*   By: hakalkan <hakalkan@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/10 16:31:21 by hakalkan          #+#    #+#             */
-/*   Updated: 2026/04/22 21:20:43 by hakalkan         ###   ########.fr       */
+/*   Updated: 2026/05/05 17:53:58 by hakalkan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -368,12 +368,18 @@ int main(int ac, char **av, char **envp)
             // Handle redirect-only commands (e.g., "> file" or "< file")
             if (cmdHead->argv[0] == NULL && cmdHead->redirs && !cmdHead->next)
             {
+                int saved_stdin = dup(STDIN_FILENO);
+                int saved_stdout = dup(STDOUT_FILENO);
                 if (exec_redir(cmdHead) == 0)
                     shell.last_exit_status = 0;
                 else
                     shell.last_exit_status = 1;
                 free_lists(&shell);
                 free(line);
+                dup2(saved_stdin, STDIN_FILENO);
+                dup2(saved_stdout, STDOUT_FILENO);
+                close(saved_stdin); 
+                close(saved_stdout);
                 continue;
             }
 
