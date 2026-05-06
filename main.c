@@ -6,7 +6,7 @@
 /*   By: hakalkan <hakalkan@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/10 16:31:21 by hakalkan          #+#    #+#             */
-/*   Updated: 2026/05/05 17:53:58 by hakalkan         ###   ########.fr       */
+/*   Updated: 2026/05/06 17:27:21 by hakalkan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -309,6 +309,41 @@ int	syntax_check(t_token *t)
 	}
 	return (0);
 }
+
+#include <stdio.h>
+
+const char *get_token_type_name(t_token_type type)
+{
+	if (type == TWORD)
+		return "WORD";
+	else if (type == TPIPE)
+		return "PIPE";
+	else if (type == T_REDIR_IN)
+		return "REDIR_IN (<)";
+	else if (type == T_REDIR_OUT)
+		return "REDIR_OUT (>)";
+	else if (type == T_REDIR_APPEND)
+		return "REDIR_APPEND (>>)";
+	else if (type == T_HEREDOC)
+		return "HEREDOC (<<)";
+	return "UNKNOWN";
+}
+
+void	print_tokens(t_token *head)
+{
+	t_token *tmp = head;
+	int i = 0;
+
+	while (tmp)
+	{
+		printf("Token[%d]\n", i);
+		printf("  type  : %s\n", get_token_type_name(tmp->type));
+		printf("  value : %s\n", tmp->value ? tmp->value : "NULL");
+		printf("----------------------\n");
+		tmp = tmp->next;
+		i++;
+	}
+}
 int main(int ac, char **av, char **envp)
 {
     char *line;
@@ -352,6 +387,8 @@ int main(int ac, char **av, char **envp)
             continue;
         }
         shell.tokens = tokenizer(line);
+        // t_token *head = shell.tokens;
+        // print_tokens(head);
         if (syntax_check(shell.tokens))
         {
             shell.last_exit_status = 2;

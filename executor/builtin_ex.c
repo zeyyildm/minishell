@@ -53,8 +53,7 @@ int is_parent_builtin(char *cmd)
 {
     if (!cmd)
         return (0);
-    return (is_cmd(cmd, "cd") || is_cmd(cmd, "export") || 
-            is_cmd(cmd, "unset") || is_cmd(cmd, "exit"));
+    return (is_cmd(cmd, "exit"));
 }
 
 int init_builtin_ex(t_shell *shell, t_command *cmd)

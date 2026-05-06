@@ -6,7 +6,7 @@
 /*   By: hakalkan <hakalkan@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/10 16:31:14 by hakalkan          #+#    #+#             */
-/*   Updated: 2026/05/05 14:04:43 by hakalkan         ###   ########.fr       */
+/*   Updated: 2026/05/06 16:40:15 by hakalkan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -96,6 +96,42 @@ t_token *tokenizer(char *s)
             break;
         if(s[i] == '|')
             token_add_back(&head, new_token(TPIPE, NULL));
+        else if (ft_isdigit(s[i]) && (s[i + 1] == '>' || s[i + 1] == '<'))
+        {
+            int start = i;
+
+            while (ft_isdigit(s[i]))
+                i++;
+
+            if (s[i] == '>')
+            {
+                if (s[i + 1] == '>')
+                {
+                    token_add_back(&head,
+                        new_token(T_REDIR_APPEND, ft_substr(s, start, i - start)));
+                    i++; // ikinci >
+                }
+                else
+                {
+                    token_add_back(&head,
+                        new_token(T_REDIR_OUT, ft_substr(s, start, i - start)));
+                }
+            }
+            else if (s[i] == '<')
+            {
+                if (s[i + 1] == '<')
+                {
+                    token_add_back(&head,
+                        new_token(T_HEREDOC, ft_substr(s, start, i - start)));
+                    i++;
+                }
+                else
+                {
+                    token_add_back(&head,
+                        new_token(T_REDIR_IN, ft_substr(s, start, i - start)));
+                }
+            }
+        }
         else if(s[i] == '<' || s[i] == '>')
             parse_redir(&head, s, &i);
         else
