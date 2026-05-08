@@ -10,35 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "minishell.h"
-
-static	t_redir	*add_redir(void)
-{
-	t_redir	*rdr;
-
-	rdr = malloc(sizeof(t_redir));
-	if (!rdr)
-		return (NULL);
-	rdr->file = NULL;
-	rdr->type = 0;
-	rdr->next = NULL;
-	return (rdr);
-}
-
-t_command	*add_command(void)
-{
-	t_command	*cmd;
-
-	cmd = malloc(sizeof(t_command));
-	if (!cmd)
-		return (NULL);
-	cmd->argv = NULL;
-	cmd->next = NULL;
-	cmd->redirs = NULL;
-	cmd->i = 0;
-	cmd->heredoc_fd = -1;
-	return (cmd);
-}
+#include "../minishell.h"
 
 int	cmd_size(t_token *t)
 {
@@ -68,14 +40,14 @@ int	word_save(t_command *cmd, t_token *t)
 	count = 0;
 	tmp = t;
 	i = 0;
-	while (tmp && tmp->type != TPIPE) //pipe gelene kadar tüm tokenları gez
+	while (tmp && tmp->type != TPIPE)
 	{
 		if (tmp->next && (tmp->type == T_REDIR_IN || tmp->type == T_REDIR_OUT
 				||tmp->type == T_REDIR_APPEND || tmp->type == T_HEREDOC))
-			tmp = tmp->next; //redirleri atla argvye koyma
+			tmp = tmp->next;
 		else if (tmp->type == TWORD)
 		{
-			cmd->argv[i++] = ft_strdup(tmp->value); // raw token sakla, expanded() işleyecek
+			cmd->argv[i++] = ft_strdup(tmp->value);
 			count++;
 		}
 		tmp = tmp->next;
@@ -85,34 +57,7 @@ int	word_save(t_command *cmd, t_token *t)
 	return (count);
 }
 
-void	redir_add_back(t_command *cmd, t_redir *new)
-{
-	t_redir	*tmp;
-
-	if (!cmd->redirs)
-	{
-		cmd->redirs = new;
-		return ;
-	}
-	tmp = cmd->redirs;
-	while (tmp->next)
-		tmp = tmp->next;
-	tmp->next = new;
-}
-
-void redir_pars(t_command *cmd, t_token *t)
-{
-	t_redir	*new;
-
-	if (!t->next || !t->next->value)
-		return ;
-	new = add_redir();
-	new->type = t->type;
-	new->file = ft_strdup(t->next->value);
-	redir_add_back(cmd, new);
-}
-
-t_command *parser(t_token *t, t_command *cmd)
+t_command	*parser(t_token *t, t_command *cmd)
 {
 	cmd = add_command();
 	cmd->argv = malloc(sizeof(char *) * (cmd_size(t) + 1));
@@ -123,7 +68,7 @@ t_command *parser(t_token *t, t_command *cmd)
 				||t->type == T_REDIR_APPEND || t->type == T_HEREDOC))
 		{
 			if (t->next && t->next->type == TWORD)
-				redir_pars(cmd,t);
+				redir_pars(cmd, t);
 			else
 				return (NULL);
 		}

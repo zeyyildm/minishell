@@ -12,9 +12,6 @@
 
 #include "minishell.h"
 
-
-
-//diyelim ki girdi ls
 volatile sig_atomic_t g_signal = 0;
 
 void sigint_handler(int sig)
@@ -40,7 +37,7 @@ void init_signals(void)
     signal(SIGQUIT, SIG_IGN);
 }
 
-static int is_only_spaces(const char *s) //girilen satır boş mu veya sadece space mi
+static int is_only_spaces(const char *s)
 {
     int i = 0;
 
@@ -126,7 +123,7 @@ int line_check_quote(char *str)
         i++;
     }
     if (quote != 0)
-        return 1; // hata var
+        return 1;
     return 0;
 }
 void init_env(t_shell *shell)
@@ -344,65 +341,68 @@ void	print_tokens(t_token *head)
 		i++;
 	}
 }
+static int prechecks(t_shell *shell, char *line)
+{
+    if (!line)
+    {
+        write(1, "exit\n", 5);
+        rl_clear_history();
+        free_lists(shell);
+        free_env(shell->env);
+        exit(0);
+    }
+    if (line_check_quote(line))
+    {
+        ft_putstr_fd("minishell: unclosed quote\n", 2);
+        shell->last_exit_status = 2;
+        free(line);
+        return (1);
+    }
+    if (is_only_spaces(line))
+    {
+        free(line);
+        return (1);
+    }
+    return (0);
+}
+
 int main(int ac, char **av, char **envp)
 {
-    char *line;
-    t_shell shell;
-    shell.envp = envp;
-    shell.env = NULL;
-    shell.last_exit_status = 0;
-    init_env(&shell);
-    init_signals(); 
-    shell.tokens = NULL;
-    shell.commands = NULL;
-    t_command *cmdHead;
-    cmdHead = NULL;
+	char	*line;
+	t_shell	shell;
+	shell.envp = envp;
+	shell.env = NULL;
+	shell.last_exit_status = 0;
+	init_env(&shell);
+	init_signals(); 
+	shell.tokens = NULL;
+	shell.commands = NULL;
+	t_command	*cmdHead;
+	cmdHead = NULL;
 
-    (void)ac;
-    (void)av;
-    (void)envp;
+	(void)ac;
+	(void)av;
+	(void)envp;
 
-    while(1)
-    {
-        line = read_lines(); // =ls. readline bellek kullanır o yüzden free edilmeli
-        if (!line)
+	while(1)
+	{
+		line = read_lines();
+		if(prechecks(&shell, line))
+			continue;
+		shell.tokens = tokenizer(line);
+		if (syntax_check(shell.tokens))
+		{
+			shell.last_exit_status = 2;
+			free_lists(&shell);
+			free(line);
+			continue ;
+		}
+		cmdHead = parser(shell.tokens , shell.commands);
+		shell.commands = cmdHead;
+		if (cmdHead)
+			expanded(&shell);
+		if (cmdHead)
         {
-            write(1, "exit\n", 5);
-            rl_clear_history();
-            free_lists(&shell);
-            free_env(shell.env);
-            // free_envp(shell.envp); // sadece malloc'ladıysan
-            exit(0);
-        }
-        if(line_check_quote(line))
-        {
-            ft_putstr_fd("minishell: unclosed quote\n", 2);
-            shell.last_exit_status = 2;
-            free(line);
-            continue;
-        }
-        if(is_only_spaces(line))
-        {
-            free(line);
-            continue;
-        }
-        shell.tokens = tokenizer(line);
-        // t_token *head = shell.tokens;
-        // print_tokens(head);
-        if (syntax_check(shell.tokens))
-        {
-            shell.last_exit_status = 2;
-            free_lists(&shell);
-            free(line);
-            continue ;
-        }
-        cmdHead = parser(shell.tokens , shell.commands);
-        shell.commands = cmdHead;
-        if (cmdHead)
-            expanded(&shell);
-        if (cmdHead)
-        {
-            // Handle redirect-only commands (e.g., "> file" or "< file")
             if (cmdHead->argv[0] == NULL && cmdHead->redirs && !cmdHead->next)
             {
                 int saved_stdin = dup(STDIN_FILENO);
@@ -419,17 +419,13 @@ int main(int ac, char **av, char **envp)
                 close(saved_stdout);
                 continue;
             }
-
-            // HER ZAMAN önce heredoc
             if (heredoc_search(cmdHead))
             {
                 if (exec_heredoc(&shell, cmdHead) != 0)
                     return 1;
             }
-            //  sonra execution
             if (cmdHead->next)
             {
-                // Parent builtin pipe'dan gelmişse error
                 if (cmdHead->argv[0] && is_parent_builtin(cmdHead->argv[0]))
                 {
                     ft_putstr_fd("minishell: ", 2);
@@ -444,7 +440,6 @@ int main(int ac, char **av, char **envp)
             }
             else
             {
-                // Parent builtin ise (cd, export, unset, exit)
                 if (cmdHead->argv[0] && is_parent_builtin(cmdHead->argv[0]))
                 {
                     int saved_stdin = dup(STDIN_FILENO);
