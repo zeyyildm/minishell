@@ -10,13 +10,9 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "minishell.h"
+#include "../minishell.h"
 #include <readline/readline.h>
 
-// Heredoc mini bir pipe gibi davranıyor
-// Shell heredoc için geçici bir pipe açar
-// fd[1] ucu = heredoc yazma ucu
-// fd[0] ucu = komut okuma ucu
 void    handle_heredoc(t_shell *shell, t_redir *redir, int *fd)
 {
     char    *line;

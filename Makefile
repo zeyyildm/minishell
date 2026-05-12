@@ -3,14 +3,20 @@ NAME = minishell
 CC = cc
 CFLAGS = -Wall -Wextra -Werror -g
 
-SRCS = main.c get_env.c expanded.c redirect.c exec_heredoc.c \
+SRCS = main.c \
        executor/builtin_ex.c \
        executor/external_ex.c \
+	   executor/exec_heredoc.c \
 	   executor/pipe_ex.c \
+	   executor/redirect.c \
 	   tokenizer/tokenizer.c \
        tokenizer/tokenizer_helpers.c \
 	   parser/parser.c \
-	   parser/parser_helpers.c
+	   parser/parser_helpers.c \
+       expand/expanded_helpers.c \
+       expand/expand_handle.c \
+	   expand/get_env.c \
+	   expand/expanded.c 
 
 LIBFT = ./libft/libft.a
 OBJS = $(SRCS:.c=.o)

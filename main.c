@@ -6,7 +6,7 @@
 /*   By: hakalkan <hakalkan@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/10 16:31:21 by hakalkan          #+#    #+#             */
-/*   Updated: 2026/05/09 16:16:44 by hakalkan         ###   ########.fr       */
+/*   Updated: 2026/05/06 17:27:21 by hakalkan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -262,7 +262,36 @@ int	is_redir(int type)
 	return (type == T_REDIR_IN || type == T_REDIR_OUT
 		|| type == T_REDIR_APPEND || type == T_HEREDOC);
 }
+static int check_redir(t_token *tmp)
+{
+    if (!is_redir(tmp->type))
+        return (0);
+    if (!tmp->next)
+    {
+        ft_putstr_fd("minishell: syntax error near unexpected token `newline'\n", 2);
+        return (1);
+    }
+    if (tmp->next->type != TWORD)
+    {
+        ft_putstr_fd("minishell: syntax error near unexpected token `", 2);
+        ft_putstr_fd(tmp->next->value, 2);
+        ft_putstr_fd("'\n", 2);
+        return (1);
+    }
+    return (0);
+}
 
+static int	check_pipe_error(t_token *tmp, t_token *head)
+{
+    if (tmp->type != TPIPE)
+        return (0);
+    if (tmp == head || !tmp->next || tmp->next->type == TPIPE)
+    {
+        ft_putstr_fd("minishell: syntax error near unexpected token `|'\n", 2);
+        return (1);
+    }
+    return (0);
+}
 int	syntax_check(t_token *t)
 {
 	t_token	*tmp;
@@ -279,29 +308,8 @@ int	syntax_check(t_token *t)
 	tmp = t;
 	while (tmp)
 	{
-		if (tmp->type == TPIPE)
-		{
-			if (!tmp->next || tmp->next->type == TPIPE)
-			{
-				ft_putstr_fd("minishell: syntax error near unexpected token `|'\n", 2);
-				return (1);
-			}
-		}
-		else if (is_redir(tmp->type))
-		{
-			if (!tmp->next)
-			{
-				ft_putstr_fd("minishell: syntax error near unexpected token `newline'\n", 2);
-				return (1);
-			}
-			if (tmp->next->type != TWORD)
-			{
-				ft_putstr_fd("minishell: syntax error near unexpected token `", 2);
-				ft_putstr_fd(tmp->next->value, 2);
-				ft_putstr_fd("'\n", 2);
-				return (1);
-			}
-		}
+		if(check_pipe_error(tmp, t) || check_redir(tmp))
+            return(1);
 		tmp = tmp->next;
 	}
 	return (0);

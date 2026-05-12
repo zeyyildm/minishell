@@ -105,5 +105,15 @@ void		t_add_back(t_token **list, t_token *new);
 void		skip_spaces(char *s, int *i);
 int			quote_size(char *str, char c);
 void		redir_pars(t_command *cmd, t_token *t);
+int			handle_named_var(t_shell *shell, char *arg, char **result);
+int			handle_dollar(t_shell *shell, char *arg, int i, char **new_arg);
+void		expand_argv(t_shell *shell, char **argv);
+char		*append_char(char *str, char c);
+char		update_quote_state(char c, char state);
+char		*append_non_special(char *new_arg, char arg_i);
+int			count_non_empty(char **argv);
+char		**rebuild_argv(char **argv, int count);
+int			expand_variable(t_shell *shell, char *arg, char **result);
+char		*get_env_value(t_shell *shell, char *key);
 
 #endif
