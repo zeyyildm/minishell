@@ -373,7 +373,31 @@ static int prechecks(t_shell *shell, char *line)
     }
     return (0);
 }
+static int	handle_only_redirections(t_shell *shell, t_command *cmdHead, char *line)
+{
+	int saved_stdin;
+	int saved_stdout;
 
+	saved_stdin = dup(STDIN_FILENO);
+	saved_stdout = dup(STDOUT_FILENO);
+	if (saved_stdin == -1 || saved_stdout == -1)
+		return (1); // BURAYA HATA ÇIKIŞI GELECEK
+
+	if (exec_redir(cmdHead) == 0)
+		shell->last_exit_status = 0;
+	else
+		shell->last_exit_status = 1;
+
+	free_lists(shell);
+	free(line);
+
+	dup2(saved_stdin, STDIN_FILENO);
+	dup2(saved_stdout, STDOUT_FILENO);
+	close(saved_stdin);
+	close(saved_stdout);
+
+	return (0);
+}
 int main(int ac, char **av, char **envp)
 {
 	char	*line;
@@ -413,18 +437,7 @@ int main(int ac, char **av, char **envp)
         {
             if (cmdHead->argv[0] == NULL && cmdHead->redirs && !cmdHead->next)
             {
-                int saved_stdin = dup(STDIN_FILENO);
-                int saved_stdout = dup(STDOUT_FILENO);
-                if (exec_redir(cmdHead) == 0)
-                    shell.last_exit_status = 0;
-                else
-                    shell.last_exit_status = 1;
-                free_lists(&shell);
-                free(line);
-                dup2(saved_stdin, STDIN_FILENO);
-                dup2(saved_stdout, STDOUT_FILENO);
-                close(saved_stdin); 
-                close(saved_stdout);
+                if(handle_only_redirections(&shell, cmdHead, line))
                 continue;
             }
             if (heredoc_search(cmdHead))

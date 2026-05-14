@@ -8,6 +8,7 @@ SRCS = main.c \
        executor/external_ex.c \
 	   executor/exec_heredoc.c \
 	   executor/pipe_ex.c \
+	   executor/helper.c \
 	   executor/redirect.c \
 	   tokenizer/tokenizer.c \
        tokenizer/tokenizer_helpers.c \

@@ -81,7 +81,6 @@ static char	*expand_chars(t_shell *shell, char *arg, char *new_arg)
 	}
 	return (new_arg);
 }
-
 char	*expand_arg(t_shell *shell, char *arg)
 {
 	char	*new_arg;

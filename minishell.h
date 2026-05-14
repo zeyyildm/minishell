@@ -115,5 +115,8 @@ int			count_non_empty(char **argv);
 char		**rebuild_argv(char **argv, int count);
 int			expand_variable(t_shell *shell, char *arg, char **result);
 char		*get_env_value(t_shell *shell, char *key);
+int			heredoc_break(char *line, char *delimiter);
+void		heredoc_write(t_shell *shell, char **line, int *fd, int expand);
+void		handle_heredoc(t_shell *shell, t_redir *redir, int *fd);
 
 #endif

@@ -20,7 +20,7 @@ int	exec_redir_in(char *filename)
 	if (fd < 0)
 	{
 		perror(filename);
-		//free(filename);
+		free(filename);
 		return (-1);
 	}
 	dup2(fd, STDIN_FILENO);
