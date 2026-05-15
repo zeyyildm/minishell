@@ -4,11 +4,17 @@ CC = cc
 CFLAGS = -Wall -Wextra -Werror -g
 
 SRCS = main.c \
-       executor/builtin_ex.c \
-       executor/external_ex.c \
+       executor/builtin_cd.c \
+       executor/builtin_echo.c \
+	   executor/builtin_env.c \
+	   executor/builtin_export.c \
+	   executor/builtin_helper.c \
+	   executor/builtin_unset.c \
+	   executor/builtin.c \
 	   executor/exec_heredoc.c \
-	   executor/pipe_ex.c \
+	   executor/external_ex.c \
 	   executor/helper.c \
+	   executor/pipe_ex.c \
 	   executor/redirect.c \
 	   tokenizer/tokenizer.c \
        tokenizer/tokenizer_helpers.c \

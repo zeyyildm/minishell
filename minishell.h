@@ -78,6 +78,7 @@ t_token		*tokenizer(char *s);
 t_command	*parser(t_token *t, t_command *cmd);
 t_command	*add_command(void);
 t_token		*new_token(t_token_type type, char *value);
+t_env		*env_sort(t_env *env);
 void		get_env(t_shell *shell);
 void		free_lists(t_shell *shell);
 void		free_env(t_env *env);
@@ -118,5 +119,16 @@ char		*get_env_value(t_shell *shell, char *key);
 int			heredoc_break(char *line, char *delimiter);
 void		heredoc_write(t_shell *shell, char **line, int *fd, int expand);
 void		handle_heredoc(t_shell *shell, t_redir *redir, int *fd);
+void		echo_helper(t_shell *shell, t_command *cmd);
+int			parse_newline(t_command *cmd, int *i);
+int			cd_get_path(t_shell *shell, t_command *cmd, char **path_target);
+void		pwd_helper(t_shell *shell, t_command *cmd);
+int			is_valid_identifier(const char *s);
+int			is_valid_number(const char *s);
+int			is_cmd(char *name, char *cmd);
+int			is_parent_builtin(char *cmd);
+char		*get_env_values(t_env *env, char *key);
+void		update_env(t_env *env, char *key, char *new_value);
+void		env_helper(t_shell *shell, t_command *cmd);
 
 #endif
