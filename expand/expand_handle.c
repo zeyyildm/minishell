@@ -39,6 +39,8 @@ void	expand_argv(t_shell *shell, char **argv)
 	int		i;
 	char	*old;
 
+	if (!argv)
+		return ;
 	i = 0;
 	while (argv[i])
 	{

@@ -19,6 +19,13 @@ void	exec_external_no_fork(t_shell *shell, t_command *cmd)
 	int				err;
 	struct stat		path_stat;
 
+	if (!cmd->argv || !cmd->argv[0])
+	{
+		ft_putstr_fd("minishell: syntax error\n", 2);
+		free_lists(shell);
+		free_env(shell->env);
+		exit(127);
+	}
 	full_path = find_ex_path(shell, cmd->argv[0]);
 	if (!full_path)
 	{

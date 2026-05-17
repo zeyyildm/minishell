@@ -20,7 +20,6 @@ int	exec_redir_in(char *filename)
 	if (fd < 0)
 	{
 		perror(filename);
-		free(filename);
 		return (-1);
 	}
 	dup2(fd, STDIN_FILENO);
@@ -36,7 +35,6 @@ int	exec_redir_out(char *filename)
 	if (fd < 0)
 	{
 		perror(filename);
-		free(filename);
 		return (-1);
 	}
 	dup2(fd, STDOUT_FILENO);
@@ -52,7 +50,6 @@ int	exec_redir_append(char *filename)
 	if (fd < 0)
 	{
 		perror(filename);
-		free(filename);
 		return (-1);
 	}
 	dup2(fd, STDOUT_FILENO);

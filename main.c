@@ -76,21 +76,6 @@ char *read_lines(void)
 		add_history(line);
 	return (line);
 }
-int line_quote_size(char *str , char c)
-{
-    int i;
-    
-    i = 0;
-    while (str[i])
-    {
-        if (str[i] == c)
-        {
-            return i;
-        }
-        i++;
-    }
-    return 0;
-}
 
 int line_flag(char *str , char c)
 {
@@ -422,6 +407,7 @@ int main(int ac, char **av, char **envp)
 		if(prechecks(&shell, line))
 			continue;
 		shell.tokens = tokenizer(line);
+        //print_tokens(shell.tokens); // Tokenleri yazdır
 		if (syntax_check(shell.tokens))
 		{
 			shell.last_exit_status = 2;
@@ -437,7 +423,7 @@ int main(int ac, char **av, char **envp)
         {
             if (cmdHead->argv[0] == NULL && cmdHead->redirs && !cmdHead->next)
             {
-                if(handle_only_redirections(&shell, cmdHead, line))
+                handle_only_redirections(&shell, cmdHead, line);
                 continue;
             }
             if (heredoc_search(cmdHead))
@@ -484,7 +470,15 @@ int main(int ac, char **av, char **envp)
                 {
                     int ret = init_builtin_ex(&shell, cmdHead);
                     if (ret == -1)
-                        execute_basic(&shell, cmdHead);
+                    {
+                        if (cmdHead->argv && cmdHead->argv[0])
+                            execute_basic(&shell, cmdHead);
+                        else
+                        {
+                            ft_putstr_fd("minishell: syntax error\n", 2);
+                            shell.last_exit_status = 127;
+                        }
+                    }
                     else
                         shell.last_exit_status = ret;
                 }

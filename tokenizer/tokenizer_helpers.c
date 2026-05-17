@@ -46,16 +46,4 @@ void	skip_spaces(char *s, int *i)
 		(*i)++;
 }
 
-int	quote_size(char *str, char c)
-{
-	int	i;
 
-	i = 1;
-	while (str[i])
-	{
-		if (str[i] == c)
-			break ;
-		i++;
-	}
-	return (i);
-}

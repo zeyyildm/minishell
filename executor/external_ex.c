@@ -95,6 +95,12 @@ void	execute_basic(t_shell *shell, t_command *cmd)
 	char	*full_path;
 
 	status = 0;
+	if (!cmd->argv || !cmd->argv[0])
+	{
+		ft_putstr_fd("minishell: syntax error\n", 2);
+		shell->last_exit_status = 127;
+		return ;
+	}
 	full_path = find_ex_path(shell, cmd->argv[0]);
 	if (!full_path)
 		return ((void)command_not_found(shell, cmd->argv[0]));
