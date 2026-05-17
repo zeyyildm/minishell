@@ -13,7 +13,9 @@ SRCS = main.c \
 	   executor/builtin.c \
 	   executor/exec_heredoc.c \
 	   executor/external_ex.c \
+	   executor/external_helper.c \
 	   executor/helper.c \
+	   executor/for_quotes.c \
 	   executor/pipe_ex.c \
 	   executor/redirect.c \
 	   tokenizer/tokenizer.c \

@@ -130,5 +130,17 @@ int			is_parent_builtin(char *cmd);
 char		*get_env_values(t_env *env, char *key);
 void		update_env(t_env *env, char *key, char *new_value);
 void		env_helper(t_shell *shell, t_command *cmd);
+char		*find_ex_path(t_shell *shell, char *cmd_name);
+char		**build_envp(t_env *env);
+int			command_not_found(t_shell *shell, char *cmd);
+void		free_tmp_envp(char **envp);
+char		*find_path(t_shell *shell);
+void		handle_exec_status(t_shell *shell, int status);
+void		handle_execve_error(t_shell *shell, t_command *cmd,
+	char **child_envp, char *full_path);
+void	exec_child_process(t_shell *shell,
+	t_command *cmd, char *full_path);
+void	exec_parent_process(t_shell *shell,
+	pid_t pid, int *status);
 
 #endif

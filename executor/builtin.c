@@ -132,4 +132,3 @@ int	built_env(t_shell *shell, t_command *cmd)
 		return (WEXITSTATUS(status));
 	return (1);
 }
-
