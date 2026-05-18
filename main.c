@@ -3,411 +3,72 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: hakalkan <hakalkan@student.42istanbul.c    +#+  +:+       +#+        */
+/*   By: zeyildir <zeyildir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/10 16:31:21 by hakalkan          #+#    #+#             */
-/*   Updated: 2026/05/06 17:27:21 by hakalkan         ###   ########.fr       */
+/*   Updated: 2026/05/18 20:00:33 by zeyildir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
-volatile sig_atomic_t g_signal = 0;
+int	g_signal = 0;
 
-void sigint_handler(int sig)
-{
-    (void)sig;
-    g_signal = 1;
-    write(1, "\n", 1);
-
-    rl_on_new_line();
-    rl_replace_line("", 0);
-    rl_redisplay();
-}
-
-void init_signals(void)
-{
-    struct sigaction sa;
-
-    sa.sa_handler = sigint_handler;
-    sigemptyset(&sa.sa_mask);
-    sa.sa_flags = 0;
-
-    sigaction(SIGINT, &sa, NULL);
-    signal(SIGQUIT, SIG_IGN);
-}
-
-static int is_only_spaces(const char *s)
-{
-    int i = 0;
-
-    if(!s)
-        return 1;
-    while(s[i])
-    {
-        if(s[i] != ' ' && s[i] != '\t')
-            return 0;
-        i++;
-    }
-
-    return 1;
-}
-/*
-static int is_same(const char *a, const char *b) //iki string birebir aynı mı?
-{
-    int i = 0;
-
-    if (!a || !b)
-        return 0;
-    while (a[i] && b[i] && a[i] == b[i])
-        i++;
-    return (a[i] == '\0' && b[i] == '\0');
-}
-*/
-
-char *read_lines(void)
-{
-	char	*line;
-
-	line = readline("minishell$ ");
-	if (!line )
-		return (NULL);
-	if (*line && !is_only_spaces(line))
-		add_history(line);
-	return (line);
-}
-
-int line_flag(char *str , char c)
-{
-    int i;
-    
-    i = 0;
-    while (str[i])
-    {
-        if (str[i] == c)
-        {
-            return 1;
-        }
-        i++;
-    }
-    return 0;
-}
-int line_check_quote(char *str)
-{
-    int i;
-    char quote;
-
-    i = 0;
-    quote = 0;
-    while (str[i])
-    {
-        if ((str[i] == '\'' || str[i] == '"') && quote == 0)
-            quote = str[i];
-        else if (str[i] == quote)
-            quote = 0;
-        i++;
-    }
-    if (quote != 0)
-        return 1;
-    return 0;
-}
-void init_env(t_shell *shell)
-{
-    shell->env = NULL;
-    get_env(shell);
-}
-void free_tokens(t_token *tokens)
-{
-    t_token *tmp;
-
-    while (tokens)
-    {
-        tmp = tokens->next;
-        free(tokens->value);
-        free(tokens);
-        tokens = tmp;
-    }
-}
-void	free_redirs(t_redir *redirs)
-{
-	t_redir	*tmp;
-
-	while (redirs)
-	{
-		tmp = redirs->next;
-		free(redirs->file);
-		free(redirs);
-		redirs = tmp;
-	}
-}
-void	free_commands(t_command *cmd)
-{
-	t_command	*tmp;
-	int	i;
-
-	while (cmd)
-	{
-		tmp = cmd->next;
-
-		if (cmd->argv)
-		{
-			i = 0;
-			while (cmd->argv[i])
-			{
-				free(cmd->argv[i]);
-				i++;
-			}
-			free(cmd->argv);
-		}
-
-		free_redirs(cmd->redirs);
-        if (cmd->heredoc_fd != -1)
-            close(cmd->heredoc_fd);
-		free(cmd);
-		cmd = tmp;
-	}
-}
-
-void	free_env(t_env *env)
-{
-	t_env	*tmp;
-
-	while (env)
-	{
-		tmp = env->next;
-		free(env->key);
-		free(env->value);
-		free(env);
-		env = tmp;
-	}
-}
-
-void	free_envp(char **envp)
-{
-	int	i;
-
-	if (!envp)
-		return ;
-	i = 0;
-	while (envp[i])
-	{
-		free(envp[i]);
-		i++;
-	}
-	free(envp);
-}
-
-void	free_lists(t_shell *shell)
-{
-	if (!shell)
-		return ;
-
-	free_tokens(shell->tokens);
-	shell->tokens = NULL;
-	free_commands(shell->commands);
-	shell->commands = NULL;
-	// free_env(shell->env);
-	// free_envp(shell->envp);
-}
-int heredoc_search(t_command *cmd)
-{
-    t_command *cmd_tmp;
-    t_redir *tmp;
-
-    cmd_tmp = cmd;
-    while (cmd_tmp)
-    {
-        tmp = cmd_tmp->redirs;
-        while (tmp)
-        {
-            if (tmp->type == T_HEREDOC)
-            {
-                return (1);
-            }
-            tmp = tmp->next;
-        }
-        cmd_tmp = cmd_tmp->next;
-    }
-    return (0);
-}
-t_token *last_token(t_token **token)
-{
-    t_token *tmp;
-
-    tmp = *token;
-    while (tmp->next)
-    {
-        tmp = tmp->next;
-    }
-    
-    return tmp;
-}
 int	is_redir(int type)
 {
 	return (type == T_REDIR_IN || type == T_REDIR_OUT
 		|| type == T_REDIR_APPEND || type == T_HEREDOC);
 }
-static int check_redir(t_token *tmp)
+
+static int	handle_only_redirections(t_shell *shell,
+	t_command *cmdHead, char *line)
 {
-    if (!is_redir(tmp->type))
-        return (0);
-    if (!tmp->next)
-    {
-        ft_putstr_fd("minishell: syntax error near unexpected token `newline'\n", 2);
-        return (1);
-    }
-    if (tmp->next->type != TWORD)
-    {
-        ft_putstr_fd("minishell: syntax error near unexpected token `", 2);
-        ft_putstr_fd(tmp->next->value, 2);
-        ft_putstr_fd("'\n", 2);
-        return (1);
-    }
-    return (0);
-}
-
-static int	check_pipe_error(t_token *tmp, t_token *head)
-{
-    if (tmp->type != TPIPE)
-        return (0);
-    if (tmp == head || !tmp->next || tmp->next->type == TPIPE)
-    {
-        ft_putstr_fd("minishell: syntax error near unexpected token `|'\n", 2);
-        return (1);
-    }
-    return (0);
-}
-int	syntax_check(t_token *t)
-{
-	t_token	*tmp;
-
-	if (!t)
-		return (0);
-
-	if (t->type == TPIPE)
-	{
-		ft_putstr_fd("minishell: syntax error near unexpected token `|'\n", 2);
-		return (1);
-	}
-
-	tmp = t;
-	while (tmp)
-	{
-		if(check_pipe_error(tmp, t) || check_redir(tmp))
-            return(1);
-		tmp = tmp->next;
-	}
-	return (0);
-}
-
-#include <stdio.h>
-
-const char *get_token_type_name(t_token_type type)
-{
-	if (type == TWORD)
-		return "WORD";
-	else if (type == TPIPE)
-		return "PIPE";
-	else if (type == T_REDIR_IN)
-		return "REDIR_IN (<)";
-	else if (type == T_REDIR_OUT)
-		return "REDIR_OUT (>)";
-	else if (type == T_REDIR_APPEND)
-		return "REDIR_APPEND (>>)";
-	else if (type == T_HEREDOC)
-		return "HEREDOC (<<)";
-	return "UNKNOWN";
-}
-
-void	print_tokens(t_token *head)
-{
-	t_token *tmp = head;
-	int i = 0;
-
-	while (tmp)
-	{
-		printf("Token[%d]\n", i);
-		printf("  type  : %s\n", get_token_type_name(tmp->type));
-		printf("  value : %s\n", tmp->value ? tmp->value : "NULL");
-		printf("----------------------\n");
-		tmp = tmp->next;
-		i++;
-	}
-}
-static int prechecks(t_shell *shell, char *line)
-{
-    if (!line)
-    {
-        write(1, "exit\n", 5);
-        rl_clear_history();
-        free_lists(shell);
-        free_env(shell->env);
-        exit(0);
-    }
-    if (line_check_quote(line))
-    {
-        ft_putstr_fd("minishell: unclosed quote\n", 2);
-        shell->last_exit_status = 2;
-        free(line);
-        return (1);
-    }
-    if (is_only_spaces(line))
-    {
-        free(line);
-        return (1);
-    }
-    return (0);
-}
-static int	handle_only_redirections(t_shell *shell, t_command *cmdHead, char *line)
-{
-	int saved_stdin;
-	int saved_stdout;
+	int	saved_stdin;
+	int	saved_stdout;
 
 	saved_stdin = dup(STDIN_FILENO);
 	saved_stdout = dup(STDOUT_FILENO);
 	if (saved_stdin == -1 || saved_stdout == -1)
-		return (1); // BURAYA HATA ÇIKIŞI GELECEK
-
+		return (1);
 	if (exec_redir(cmdHead) == 0)
 		shell->last_exit_status = 0;
 	else
 		shell->last_exit_status = 1;
-
 	free_lists(shell);
 	free(line);
-
 	dup2(saved_stdin, STDIN_FILENO);
 	dup2(saved_stdout, STDOUT_FILENO);
 	close(saved_stdin);
 	close(saved_stdout);
-
 	return (0);
 }
-int main(int ac, char **av, char **envp)
+
+int	main(int ac, char **av, char **envp)
 {
-	char	*line;
-	t_shell	shell;
+	char		*line;
+	t_shell		shell;
+	t_command	*cmdHead;
+	int			saved_stdin;
+	int			saved_stdout;
+	int			ret;
+
 	shell.envp = envp;
 	shell.env = NULL;
 	shell.last_exit_status = 0;
 	init_env(&shell);
-	init_signals(); 
+	init_signals();
 	shell.tokens = NULL;
 	shell.commands = NULL;
-	t_command	*cmdHead;
 	cmdHead = NULL;
-
 	(void)ac;
 	(void)av;
 	(void)envp;
-
-	while(1)
+	while (1)
 	{
 		line = read_lines();
-		if(prechecks(&shell, line))
-			continue;
+		if (prechecks(&shell, line))
+			continue ;
 		shell.tokens = tokenizer(line);
-        //print_tokens(shell.tokens); // Tokenleri yazdır
 		if (syntax_check(shell.tokens))
 		{
 			shell.last_exit_status = 2;
@@ -415,77 +76,74 @@ int main(int ac, char **av, char **envp)
 			free(line);
 			continue ;
 		}
-		cmdHead = parser(shell.tokens , shell.commands);
+		cmdHead = parser(shell.tokens, shell.commands);
 		shell.commands = cmdHead;
 		if (cmdHead)
 			expanded(&shell);
 		if (cmdHead)
-        {
-            if (cmdHead->argv[0] == NULL && cmdHead->redirs && !cmdHead->next)
-            {
-                handle_only_redirections(&shell, cmdHead, line);
-                continue;
-            }
-            if (heredoc_search(cmdHead))
-            {
-                if (exec_heredoc(&shell, cmdHead) != 0)
-                    return 1;
-            }
-            if (cmdHead->next)
-            {
-                if (cmdHead->argv[0] && is_parent_builtin(cmdHead->argv[0]))
-                {
-                    ft_putstr_fd("minishell: ", 2);
-                    ft_putstr_fd(cmdHead->argv[0], 2);
-                    ft_putstr_fd(": command cannot be used with pipes\n", 2);
-                    shell.last_exit_status = 1;
-                    free_lists(&shell);
-                    free(line);
-                    continue;
-                }
-                execute_pipe(&shell, cmdHead, -1);
-            }
-            else
-            {
-                if (cmdHead->argv[0] && is_parent_builtin(cmdHead->argv[0]))
-                {
-                    int saved_stdin = dup(STDIN_FILENO);
-                    int saved_stdout = dup(STDOUT_FILENO);
-                    int ret;
-                    
-                    if (exec_redir(cmdHead) == 0)
-                    {
-                        ret = init_builtin_ex(&shell, cmdHead);         
-                        shell.last_exit_status = ret;
-                    }
-                    else
-                        shell.last_exit_status = 1;
-                    
-                    dup2(saved_stdin, STDIN_FILENO);
-                    dup2(saved_stdout, STDOUT_FILENO);
-                    close(saved_stdin); 
-                    close(saved_stdout);
-                }
-                else
-                {
-                    int ret = init_builtin_ex(&shell, cmdHead);
-                    if (ret == -1)
-                    {
-                        if (cmdHead->argv && cmdHead->argv[0])
-                            execute_basic(&shell, cmdHead);
-                        else
-                        {
-                            ft_putstr_fd("minishell: syntax error\n", 2);
-                            shell.last_exit_status = 127;
-                        }
-                    }
-                    else
-                        shell.last_exit_status = ret;
-                }
-            }
-        }
-        free_lists(&shell);
-        free(line);
-    }
-    return (0);
+		{
+			if (cmdHead->argv[0] == NULL && cmdHead->redirs && !cmdHead->next)
+			{
+				handle_only_redirections(&shell, cmdHead, line);
+				continue ;
+			}
+			if (heredoc_search(cmdHead))
+			{
+				if (exec_heredoc(&shell, cmdHead) != 0)
+					return (1);
+			}
+			if (cmdHead->next)
+			{
+				if (cmdHead->argv[0] && is_parent_builtin(cmdHead->argv[0]))
+				{
+					ft_putstr_fd("minishell: ", 2);
+					ft_putstr_fd(cmdHead->argv[0], 2);
+					ft_putstr_fd(": command cannot be used with pipes\n", 2);
+					shell.last_exit_status = 1;
+					free_lists(&shell);
+					free(line);
+					continue ;
+				}
+				execute_pipe(&shell, cmdHead, -1);
+			}
+			else
+			{
+				if (cmdHead->argv[0] && is_parent_builtin(cmdHead->argv[0]))
+				{
+					saved_stdin = dup(STDIN_FILENO);
+					saved_stdout = dup(STDOUT_FILENO);
+					if (exec_redir(cmdHead) == 0)
+					{
+						ret = init_builtin_ex(&shell, cmdHead);
+						shell.last_exit_status = ret;
+					}
+					else
+						shell.last_exit_status = 1;
+					dup2(saved_stdin, STDIN_FILENO);
+					dup2(saved_stdout, STDOUT_FILENO);
+					close(saved_stdin);
+					close(saved_stdout);
+				}
+				else
+				{
+					ret = init_builtin_ex(&shell, cmdHead);
+					if (ret == -1)
+					{
+						if (cmdHead->argv && cmdHead->argv[0])
+							execute_basic(&shell, cmdHead);
+						else
+						{
+							ft_putstr_fd("minishell: syntax error\n", 2);
+							shell.last_exit_status = 127;
+						}
+					}
+					else
+						shell.last_exit_status = ret;
+				}
+			}
+		}
+		free_lists(&shell);
+		free(line);
+	}
+	return (0);
 }

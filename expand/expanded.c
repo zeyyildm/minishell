@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   expanded.c                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: hakalkan <hakalkan@student.42istanbul.c    +#+  +:+       +#+        */
+/*   By: zeyildir <zeyildir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/09 16:16:38 by hakalkan          #+#    #+#             */
-/*   Updated: 2026/05/09 16:16:38 by hakalkan         ###   ########.fr       */
+/*   Updated: 2026/05/18 18:30:35 by zeyildir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,6 +81,7 @@ static char	*expand_chars(t_shell *shell, char *arg, char *new_arg)
 	}
 	return (new_arg);
 }
+
 char	*expand_arg(t_shell *shell, char *arg)
 {
 	char	*new_arg;

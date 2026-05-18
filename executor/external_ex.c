@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   external_ex.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: hakalkan <hakalkan@student.42istanbul.c    +#+  +:+       +#+        */
+/*   By: zeyildir <zeyildir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/09 16:16:24 by hakalkan          #+#    #+#             */
-/*   Updated: 2026/05/09 16:16:25 by hakalkan         ###   ########.fr       */
+/*   Updated: 2026/05/18 18:26:22 by zeyildir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -107,10 +107,8 @@ void	execute_basic(t_shell *shell, t_command *cmd)
 	pid = fork();
 	if (pid < 0)
 	{
-		perror("fork");
-		free(full_path);
 		shell->last_exit_status = 1;
-		return ;
+		return (perror("fork"), free(full_path));
 	}
 	if (pid == 0)
 		exec_child_process(shell, cmd, full_path);

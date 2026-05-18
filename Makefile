@@ -4,6 +4,7 @@ CC = cc
 CFLAGS = -Wall -Wextra -Werror -g
 
 SRCS = main.c \
+	   main_helper.c \
        executor/builtin_cd.c \
        executor/builtin_echo.c \
 	   executor/builtin_env.c \
@@ -18,6 +19,7 @@ SRCS = main.c \
 	   executor/for_quotes.c \
 	   executor/pipe_ex.c \
 	   executor/redirect.c \
+	   executor/pipe_ex_helper.c \
 	   tokenizer/tokenizer.c \
        tokenizer/tokenizer_helpers.c \
 	   parser/parser.c \
@@ -25,7 +27,10 @@ SRCS = main.c \
        expand/expanded_helpers.c \
        expand/expand_handle.c \
 	   expand/get_env.c \
-	   expand/expanded.c 
+	   expand/expanded.c \
+	   signal/signal.c \
+	   free_and_checks/free.c \
+	   free_and_checks/checks.c 
 
 LIBFT = ./libft/libft.a
 OBJS = $(SRCS:.c=.o)

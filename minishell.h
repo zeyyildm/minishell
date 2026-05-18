@@ -3,27 +3,27 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: hakalkan <hakalkan@student.42istanbul.c    +#+  +:+       +#+        */
+/*   By: zeyildir <zeyildir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/19 04:15:59 by hakalkan          #+#    #+#             */
-/*   Updated: 2026/05/06 20:11:30 by hakalkan         ###   ########.fr       */
+/*   Updated: 2026/05/18 19:51:18 by zeyildir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef MINISHELL_H
-#define MINISHELL_H
-#define _POSIX_C_SOURCE 200809L
-#include <unistd.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <fcntl.h>
-#include <sys/wait.h>
-#include "libft/libft.h"
-#include <readline/readline.h>
-#include <signal.h>
-#include <readline/history.h>
-#include <errno.h>
-#include <sys/stat.h>
+# define MINISHELL_H
+# define _POSIX_C_SOURCE 200809L
+# include <unistd.h>
+# include <stdlib.h>
+# include <stdio.h>
+# include <fcntl.h>
+# include <sys/wait.h>
+# include "libft/libft.h"
+# include <readline/readline.h>
+# include <signal.h>
+# include <readline/history.h>
+# include <errno.h>
+# include <sys/stat.h>
 
 typedef enum e_token_type
 {
@@ -74,6 +74,7 @@ typedef struct s_shell
 	int			last_exit_status;
 }	t_shell;
 
+extern int	g_signal;
 t_token		*tokenizer(char *s);
 t_command	*parser(t_token *t, t_command *cmd);
 t_command	*add_command(void);
@@ -137,10 +138,33 @@ void		free_tmp_envp(char **envp);
 char		*find_path(t_shell *shell);
 void		handle_exec_status(t_shell *shell, int status);
 void		handle_execve_error(t_shell *shell, t_command *cmd,
-	char **child_envp, char *full_path);
-void	exec_child_process(t_shell *shell,
-	t_command *cmd, char *full_path);
-void	exec_parent_process(t_shell *shell,
-	pid_t pid, int *status);
+				char **child_envp, char *full_path);
+void		exec_child_process(t_shell *shell,
+				t_command *cmd, char *full_path);
+void		exec_parent_process(t_shell *shell,
+				pid_t pid, int *status);
+void		exit_exec_error(t_shell *shell, char *full_path, int err);
+void		handle_is_directory(t_shell *shell, t_command *cmd,
+				char *full_path);
+void		handle_exec_error(t_shell *shell, t_command *cmd,
+				char *full_path);
+char		*prepare_external_exec(t_shell *shell, t_command *cmd);
+void		sigint_handler(int sig);
+void		init_signals(void);
+int			check_redir(t_token *tmp);
+int			check_pipe_error(t_token *tmp, t_token *head);
+int			prechecks(t_shell *shell, char *line);
+int			syntax_check(t_token *t);
+void		free_tokens(t_token *tokens);
+void		free_redirs(t_redir *redirs);
+void		free_commands(t_command *cmd);
+void		free_env(t_env *env);
+void		free_envp(char **envp);
+int			is_redir(int type);
+int			line_check_quote(char *str);
+int			is_only_spaces(const char *s);
+void		init_env(t_shell *shell);
+char		*read_lines(void);
+int			heredoc_search(t_command *cmd);
 
 #endif
