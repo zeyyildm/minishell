@@ -6,12 +6,11 @@
 /*   By: hakalkan <hakalkan@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/16 13:43:08 by hakalkan          #+#    #+#             */
-/*   Updated: 2026/04/22 20:50:53 by hakalkan         ###   ########.fr       */
+/*   Updated: 2026/05/18 20:08:12 by hakalkan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../minishell.h"
-#include <readline/readline.h>
 
 static int	create_pipe(int fd[2], pid_t *pid)
 {

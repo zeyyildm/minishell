@@ -3,15 +3,14 @@
 /*                                                        :::      ::::::::   */
 /*   external_ex.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: zeyildir <zeyildir@student.42.fr>          +#+  +:+       +#+        */
+/*   By: hakalkan <hakalkan@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/09 16:16:24 by hakalkan          #+#    #+#             */
-/*   Updated: 2026/05/18 18:26:22 by zeyildir         ###   ########.fr       */
+/*   Updated: 2026/05/18 20:08:09 by hakalkan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../minishell.h"
-#include <errno.h>
 
 void	handle_exec_status(t_shell *shell, int status)
 {

@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   checks.c                                           :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: hakalkan <hakalkan@student.42istanbul.c    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/05/18 20:07:05 by hakalkan          #+#    #+#             */
+/*   Updated: 2026/05/18 20:13:14 by hakalkan         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "../minishell.h"
 
 void	free_lists(t_shell *shell)
@@ -16,7 +28,9 @@ int	check_redir(t_token *tmp)
 		return (0);
 	if (!tmp->next)
 	{
-		ft_putstr_fd("minishell: syntax error near unexpected token `newline'\n",
+		ft_putstr_fd(
+			"minishell: syntax error near unexpected token "
+			"`newline'\n",
 			2);
 		return (1);
 	}
@@ -48,24 +62,22 @@ int	syntax_check(t_token *t)
 
 	if (!t)
 		return (0);
-
 	if (t->type == TPIPE)
 	{
 		ft_putstr_fd("minishell: syntax error near unexpected token `|'\n", 2);
 		return (1);
 	}
-
 	tmp = t;
 	while (tmp)
 	{
-		if(check_pipe_error(tmp, t) || check_redir(tmp))
-			return(1);
+		if (check_pipe_error(tmp, t) || check_redir(tmp))
+			return (1);
 		tmp = tmp->next;
 	}
 	return (0);
 }
 
-int prechecks(t_shell *shell, char *line)
+int	prechecks(t_shell *shell, char *line)
 {
 	if (!line)
 	{
